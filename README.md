@@ -50,7 +50,8 @@ El equipo utiliza **Git** con una estrategia simplificada de **Git Flow**, adapt
 
 ## 👥 Equipo
 - José Andrés Acevedo  
-- Hugo Alberto Villarreal  
+- Hugo Alberto Villarreal
+- Enzo Josef Morales  
 
 ---
 
