@@ -3,10 +3,8 @@
     "",
     "\\FiscalHost.Api.CR",
     "\\FiscalHost.Api.CR\\Data",
-    "\\FiscalHost.Api.CR\\Exceptions",
-    "\\FiscalHost.Api.CR\\Helpers",
     "\\FiscalHost.Api.CR\\Properties"
   ],
-  "SelectedNode": "\\FiscalHost.Api.CR",
+  "SelectedNode": "\\FiscalHost.Api.CR\\FiscalHost.Api.CR.csproj",
   "PreviewInSolutionExplorer": false
 }
