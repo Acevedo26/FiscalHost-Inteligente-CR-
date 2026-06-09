@@ -26,5 +26,7 @@ dist-ssr
 *.slnx
 *.esproj
 *.esproj.user
+.vs/
+bin/
 obj/
 
