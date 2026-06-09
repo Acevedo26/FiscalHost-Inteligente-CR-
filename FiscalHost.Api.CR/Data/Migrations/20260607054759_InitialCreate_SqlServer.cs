@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace FiscalHost.Api.CR.Migrations
+namespace FiscalHost.Api.CR.Data.Migrations
 {
     /// <inheritdoc />
     public partial class InitialCreate_SqlServer : Migration
@@ -96,14 +96,9 @@ namespace FiscalHost.Api.CR.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "AuditoriasConfiguracion");
-
-            migrationBuilder.DropTable(
-                name: "ConfiguracionesTributarias");
-
-            migrationBuilder.DropTable(
-                name: "ActividadesEconomicas");
+            migrationBuilder.DropTable(name: "AuditoriasConfiguracion");
+            migrationBuilder.DropTable(name: "ConfiguracionesTributarias");
+            migrationBuilder.DropTable(name: "ActividadesEconomicas");
         }
     }
 }
