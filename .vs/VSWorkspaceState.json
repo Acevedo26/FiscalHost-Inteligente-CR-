@@ -1,10 +1,13 @@
 {
   "ExpandedNodes": [
     "",
+    "\\docs",
     "\\FiscalHost.Api.CR",
     "\\FiscalHost.Api.CR\\Data",
-    "\\FiscalHost.Api.CR\\Properties"
+    "\\FiscalHost.Api.CR\\Properties",
+    "\\FiscalHost.Api.CR\\Exceptions",
+    "\\FiscalHost.Api.CR\\Helpers"
   ],
-  "SelectedNode": "\\FiscalHost.Api.CR\\FiscalHost.Api.CR.csproj",
+  "SelectedNode": "\\FiscalHost.Api.CR\\Program.cs",
   "PreviewInSolutionExplorer": false
 }
