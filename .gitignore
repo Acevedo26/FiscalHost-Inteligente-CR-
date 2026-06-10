@@ -26,6 +26,8 @@ dist-ssr
 *.slnx
 *.esproj
 *.esproj.user
+.vs/
+bin/
 obj/
 
 # Visual Studio workspace folder
