@@ -1,9 +1,7 @@
 using FiscalHost.Api.CR.Models.DTOs;
 using FiscalHost.Api.CR.Models.Entities;
-using FiscalHost.Api.CR.Models.Emums;
+using FiscalHost.Api.CR.Models.Enums;
 using FiscalHost.Api.CR.Repositories;
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace FiscalHost.Api.CR.Services;
@@ -20,11 +18,19 @@ public class AuthService(IUsuarioRepository usuarioRepo) : IAuthService
         RegistrarUsuarioAsync(RegistroUsuarioRequest request)
     {
         var correoExistente =
-            await usuarioRepo.GetByCorreoAsync(request.Correo);
+            await usuarioRepo.GetByCorreoAsync(request.CorreoElectronico);
 
         if (correoExistente is not null)
             return (false,
                 "El correo electrónico ya está registrado.",
+                null);
+
+        var identificacionExistente =
+            await usuarioRepo.GetByIdentificacionAsync(request.NumeroIdentificacion);
+
+        if (identificacionExistente is not null)
+            return (false,
+                "El número de identificación ya está registrado.",
                 null);
 
         if (!ValidarContrasena(request.Contrasena))
@@ -41,10 +47,11 @@ public class AuthService(IUsuarioRepository usuarioRepo) : IAuthService
 
         var usuario = new Usuario
         {
-            Nombre = request.Nombre,
-            Correo = request.Correo,
-            ContrasenaHash = HashPassword(request.Contrasena),
+            NombreCompleto = request.NombreCompleto,
+            CorreoElectronico = request.CorreoElectronico,
+            ContrasenaHash = BCrypt.Net.BCrypt.HashPassword(request.Contrasena),
             NumeroIdentificacion = request.NumeroIdentificacion,
+            RazonSocial = request.RazonSocial,
             TipoIdentificacion =
                 Enum.Parse<TipoIdentificacion>(
                     request.TipoIdentificacion,
@@ -58,8 +65,8 @@ public class AuthService(IUsuarioRepository usuarioRepo) : IAuthService
             null,
             new RegistroUsuarioResponse
             {
-                Id = usuario.Id,
-                Correo = usuario.Correo,
+                UsuarioId = usuario.UsuarioId,
+                CorreoElectronico = usuario.CorreoElectronico,
                 Mensaje = "Registro exitoso."
             });
     }
@@ -77,10 +84,10 @@ public class AuthService(IUsuarioRepository usuarioRepo) : IAuthService
     {
         return tipo.ToUpper() switch
         {
-            "CEDULAFISICA" =>
+            "FISICA" =>
                 Regex.IsMatch(identificacion, @"^\d{9}$"),
 
-            "CEDULAJURIDICA" =>
+            "JURIDICA" =>
                 Regex.IsMatch(identificacion, @"^\d{10}$"),
 
             "DIMEX" =>
@@ -93,11 +100,4 @@ public class AuthService(IUsuarioRepository usuarioRepo) : IAuthService
         };
     }
 
-    private static string HashPassword(string password)
-    {
-        var bytes = SHA256.HashData(
-            Encoding.UTF8.GetBytes(password));
-
-        return Convert.ToHexString(bytes);
-    }
 }

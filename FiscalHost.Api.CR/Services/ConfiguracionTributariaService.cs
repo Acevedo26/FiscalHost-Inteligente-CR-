@@ -1,6 +1,6 @@
 using FiscalHost.Api.CR.Models.DTOs;
 using FiscalHost.Api.CR.Models.Entities;
-using FiscalHost.Api.CR.Models.Emums;
+using FiscalHost.Api.CR.Models.Enums;
 using FiscalHost.Api.CR.Repositories;
 
 namespace FiscalHost.Api.CR.Services;
@@ -52,8 +52,7 @@ public class ConfiguracionTributariaService(
                 ActividadEconomicaId = actividad.Id,
                 TribuCr = GenerarTribuCr(request.AnfitrionId, request.CodigoActividad),
                 DireccionFiscal = request.DireccionFiscal,
-                Nise = request.Nise,
-                Estado = EstadoConfiguracion.Activa
+                Nise = request.Nise
             };
             await configRepo.AddAsync(config);
             await configRepo.SaveChangesAsync();
@@ -69,7 +68,7 @@ public class ConfiguracionTributariaService(
             bool cambioActividad = codigoAnterior != request.CodigoActividad;
 
             if (cambioActividad)
-                advertencia = "⚠️ El cambio de actividad económica puede afectar sus obligaciones fiscales vigentes. Consulte con un contador autorizado.";
+                advertencia = "El cambio de actividad económica puede afectar sus obligaciones fiscales vigentes. Consulte con un contador autorizado.";
 
             existing.ActividadEconomicaId = actividad.Id;
             existing.TribuCr = GenerarTribuCr(request.AnfitrionId, request.CodigoActividad);
@@ -120,7 +119,7 @@ public class ConfiguracionTributariaService(
         TribuCr = c.TribuCr,
         DireccionFiscal = c.DireccionFiscal,
         Nise = c.Nise,
-        Estado = c.Estado.ToString(),
+        Estado = "Activa",
         FechaActualizacion = c.FechaActualizacion,
         Advertencia = advertencia
     };

@@ -1,37 +1,36 @@
+using FiscalHost.Api.CR.Data;
 using FiscalHost.Api.CR.Models.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace FiscalHost.Api.CR.Repositories;
 
 public interface IUsuarioRepository
 {
     Task<Usuario?> GetByCorreoAsync(string correo);
-
+    Task<Usuario?> GetByIdentificacionAsync(string identificacion);
+    Task<IEnumerable<Usuario>> GetAllAsync();
     Task AddAsync(Usuario usuario);
-
     Task SaveChangesAsync();
 }
 
-public class UsuarioRepository : IUsuarioRepository
+public class UsuarioRepository(AppDbContext db) : IUsuarioRepository
 {
-    private readonly List<Usuario> _usuarios = [];
+    public Task<Usuario?> GetByCorreoAsync(string correo) =>
+        db.Usuarios.FirstOrDefaultAsync(u =>
+            u.CorreoElectronico.ToLower() == correo.ToLower());
 
-    public Task<Usuario?> GetByCorreoAsync(string correo)
+    public Task<Usuario?> GetByIdentificacionAsync(string identificacion) =>
+        db.Usuarios.FirstOrDefaultAsync(u =>
+            u.NumeroIdentificacion == identificacion);
+
+    public async Task<IEnumerable<Usuario>> GetAllAsync() =>
+        await db.Usuarios.ToListAsync();
+
+    public async Task AddAsync(Usuario usuario)
     {
-        return Task.FromResult(
-            _usuarios.FirstOrDefault(u =>
-                u.Correo.Equals(correo, StringComparison.OrdinalIgnoreCase))
-        );
+        usuario.UsuarioId = Guid.NewGuid();
+        await db.Usuarios.AddAsync(usuario);
     }
 
-    public Task AddAsync(Usuario usuario)
-    {
-        usuario.Id = _usuarios.Count + 1;
-        _usuarios.Add(usuario);
-        return Task.CompletedTask;
-    }
-
-    public Task SaveChangesAsync()
-    {
-        return Task.CompletedTask;
-    }
+    public Task SaveChangesAsync() => db.SaveChangesAsync();
 }
