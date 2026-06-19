@@ -1,6 +1,6 @@
-using FiscalHost.Api.CR.Models.Emums;
+using FiscalHost.Api.CR.Models.Enums.Identity;
 
-namespace FiscalHost.Api.CR.Models.Entities;
+namespace FiscalHost.Api.CR.Models.Entities.Identity;
 
 public class ConfiguracionTributaria
 {

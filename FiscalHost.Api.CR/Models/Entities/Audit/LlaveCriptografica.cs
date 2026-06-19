@@ -1,4 +1,7 @@
-namespace FiscalHost.Api.CR.Models.Entities;
+using System;
+using System.Collections.Generic;
+
+namespace FiscalHost.Api.CR.Models.Entities.Audit;
 
 public class LlaveCriptografica
 {

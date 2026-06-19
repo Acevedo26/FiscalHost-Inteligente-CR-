@@ -1,4 +1,4 @@
-namespace FiscalHost.Api.CR.Models.Entities;
+namespace FiscalHost.Api.CR.Models.Entities.Audit;
 
 public class AuditoriaLlave
 {
