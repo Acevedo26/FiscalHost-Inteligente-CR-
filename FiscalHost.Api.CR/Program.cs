@@ -1,13 +1,22 @@
 using FiscalHost.Api.CR.Data;
+using FiscalHost.Api.CR.Extensions;
 using FiscalHost.Api.CR.Repositories;
 using FiscalHost.Api.CR.Services;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDbContext<AppDbContext>(opt =>
-    opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+var dataSource = new NpgsqlDataSourceBuilder(
+    builder.Configuration.GetConnectionString("DefaultConnection"))
+    .MapFiscalHostEnums()
+    .Build();
 
+builder.Services.AddDbContext<AppDbContext>(opt => opt.UseNpgsql(dataSource));
+
+builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<IConfiguracionTributariaRepository, ConfiguracionTributariaRepository>();
 builder.Services.AddScoped<IActividadEconomicaRepository, ActividadEconomicaRepository>();
 builder.Services.AddScoped<IConfiguracionTributariaService, ConfiguracionTributariaService>();
