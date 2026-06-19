@@ -1,6 +1,8 @@
+using System;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
 
-namespace FiscalHost.Api.CR.Models.DTOs;
+namespace FiscalHost.Api.CR.Models.DTOs.Audit.Responses;
 
 public class CargarLlaveRequest
 {
@@ -23,4 +25,8 @@ public class LlaveCriptograficaResponse
     public string NombreArchivo { get; set; } = string.Empty;
     public DateTime FechaActualizacion { get; set; }
     public bool Activa { get; set; }
+}
+
+public class LlaveCriptograficaDto : LlaveCriptograficaResponse
+{
 }

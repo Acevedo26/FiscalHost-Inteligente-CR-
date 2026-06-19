@@ -1,15 +1,15 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace FiscalHost.Api.CR.Models.DTOs;
+namespace FiscalHost.Api.CR.Models.DTOs.Identity.Requests;
 
 public class RegistroUsuarioRequest
 {
     [Required]
-    public string Nombre { get; set; } = string.Empty;
+    public string NombreCompleto { get; set; } = string.Empty;
 
     [Required]
     [EmailAddress]
-    public string Correo { get; set; } = string.Empty;
+    public string CorreoElectronico { get; set; } = string.Empty;
 
     [Required]
     public string Contrasena { get; set; } = string.Empty;
@@ -19,13 +19,15 @@ public class RegistroUsuarioRequest
 
     [Required]
     public string TipoIdentificacion { get; set; } = string.Empty;
+
+    public string? RazonSocial { get; set; }
 }
 
 public class RegistroUsuarioResponse
 {
-    public int Id { get; set; }
+    public Guid UsuarioId { get; set; }
 
-    public string Correo { get; set; } = string.Empty;
+    public string CorreoElectronico { get; set; } = string.Empty;
 
     public string Mensaje { get; set; } = string.Empty;
 }
