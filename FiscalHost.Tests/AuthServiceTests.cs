@@ -27,7 +27,7 @@ public class AuthServiceTests
 
         var request = BuildRequest(
             correo: "enzo@test.com",
-            tipoIdentificacion: "CedulaFisica",
+            tipoIdentificacion: "Fisica",
             identificacion: "123456789");
 
         var (success, error, data) =
@@ -88,8 +88,8 @@ public class AuthServiceTests
         _usuarioRepo.GetByCorreoAsync("duplicado@test.com")
             .Returns(new Usuario
             {
-                Id = 1,
-                Correo = "duplicado@test.com"
+                UsuarioId = Guid.NewGuid(),
+                CorreoElectronico = "duplicado@test.com"
             });
 
         var request = BuildRequest(
@@ -146,12 +146,12 @@ public class AuthServiceTests
         string nombre = "Enzo Morales",
         string correo = "enzo@test.com",
         string password = "Password123",
-        string tipoIdentificacion = "CedulaFisica",
+        string tipoIdentificacion = "Fisica",
         string identificacion = "123456789")
         => new()
         {
-            Nombre = nombre,
-            Correo = correo,
+            NombreCompleto = nombre,
+            CorreoElectronico = correo,
             Contrasena = password,
             TipoIdentificacion = tipoIdentificacion,
             NumeroIdentificacion = identificacion

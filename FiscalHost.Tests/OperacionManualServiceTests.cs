@@ -1,4 +1,4 @@
-using FiscalHost.Api.CR.Models.DTOs;
+﻿using FiscalHost.Api.CR.Models.DTOs;
 using FiscalHost.Api.CR.Repositories;
 using FiscalHost.Api.CR.Services;
 using NSubstitute;
@@ -74,7 +74,7 @@ public class OperacionManualServiceTests
 
         await _repository.Received(1)
             .AddReservaAsync(
-                Arg.Any<FiscalHost.Api.CR.Models.Entities.ReservaDirecta>());
+                Arg.Any<ReservaDirecta>());
     }
 
     [Fact]
@@ -115,6 +115,6 @@ public class OperacionManualServiceTests
 
         await _repository.Received(1)
             .AddGastoAsync(
-                Arg.Any<FiscalHost.Api.CR.Models.Entities.GastoOperativo>());
+                Arg.Any<GastoOperativo>());
     }
 }
