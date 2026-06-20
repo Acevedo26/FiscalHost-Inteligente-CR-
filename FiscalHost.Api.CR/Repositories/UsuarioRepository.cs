@@ -1,5 +1,5 @@
-using FiscalHost.Api.CR.Data;
-using FiscalHost.Api.CR.Models.Entities;
+﻿using FiscalHost.Api.CR.Data;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace FiscalHost.Api.CR.Repositories;

@@ -1,4 +1,3 @@
-using FiscalHost.Api.CR.Models.DTOs;
 using FiscalHost.Api.CR.Services;
 using Microsoft.AspNetCore.Mvc;
 

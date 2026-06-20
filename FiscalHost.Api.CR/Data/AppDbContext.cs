@@ -1,4 +1,4 @@
-﻿using FiscalHost.Api.CR.Models.Enums;
+using FiscalHost.Api.CR.Models.Enums;
 using FiscalHost.Api.CR.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -25,8 +25,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<PeriodoFiscal> PeriodosFiscales => Set<PeriodoFiscal>();
 
     // DbSets for restored modules
-    public DbSet<ActividadEconomica> ActividadesEconomicas => Set<ActividadEconomica>();
-    public DbSet<ConfiguracionTributaria> ConfiguracionesTributarias => Set<ConfiguracionTributaria>();
     public DbSet<AuditoriaConfiguracion> AuditoriasConfiguracion => Set<AuditoriaConfiguracion>();
     public DbSet<AuditoriaLlave> AuditoriasLlave => Set<AuditoriaLlave>();
     public DbSet<ReservaDirecta> ReservasDirectas => Set<ReservaDirecta>();
@@ -35,6 +33,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasDefaultSchema("fiscalhost_db");
+
         modelBuilder.HasPostgresEnum<TipoIdentificacion>("fiscalhost_db", "tipo_identificacion");
         modelBuilder.HasPostgresEnum<EstadoUsuario>("fiscalhost_db", "estado_usuario");
         modelBuilder.HasPostgresEnum<RolUsuario>("fiscalhost_db", "rol_usuario");
@@ -55,12 +55,47 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.HasPostgresEnum<OperacionAuditoria>("fiscalhost_db", "operacion_auditoria");
         modelBuilder.HasPostgresEnum<TipoMoneda>("fiscalhost_db", "tipo_moneda");
 
+        // ── Mapeo explícito de nombres de tabla (snake_case en PostgreSQL) ──────────────
+
+        // Identity
+        modelBuilder.Entity<Usuario>().ToTable("usuario");
+        modelBuilder.Entity<PerfilTributario>().ToTable("perfil_tributario");
+        modelBuilder.Entity<Propiedad>().ToTable("propiedad");
+        modelBuilder.Entity<AccesoContador>().ToTable("acceso_contador");
+
+        // Operations
+        modelBuilder.Entity<Reserva>().ToTable("reserva");
+        modelBuilder.Entity<Gasto>().ToTable("gasto");
+        modelBuilder.Entity<ImportacionMasiva>().ToTable("importacion_masiva");
+        modelBuilder.Entity<ReservaDirecta>().ToTable("reserva_directa");
+        modelBuilder.Entity<GastoOperativo>().ToTable("gasto_operativo");
+
+        // TaxIntelligence
+        modelBuilder.Entity<CatalogoActividadEconomica>().ToTable("catalogo_actividad_economica");
+        modelBuilder.Entity<CalculoFiscal>().ToTable("calculo_fiscal");
+        modelBuilder.Entity<ObligacionTributaria>().ToTable("obligacion_tributaria");
+        modelBuilder.Entity<SancionAutoliquidacion>().ToTable("sancion_autoliquidacion");
+        modelBuilder.Entity<PeriodoFiscal>().ToTable("periodo_fiscal");
+        modelBuilder.Entity<SimulacionFiscal>().ToTable("simulacion_fiscal");
+        modelBuilder.Entity<Exportacion>().ToTable("exportacion");
+
+        // Communication
+        modelBuilder.Entity<Alerta>().ToTable("alerta");
+        modelBuilder.Entity<ContenidoEducativo>().ToTable("contenido_educativo");
+
+        // Audit
+        modelBuilder.Entity<LlaveCriptografica>().ToTable("llave_criptografica");
+        modelBuilder.Entity<AuditoriaConfiguracion>().ToTable("auditoria_configuracion");
+        modelBuilder.Entity<AuditoriaLlave>().ToTable("auditoria_llave");
+        modelBuilder.Entity<AuditoriaOperacion>().ToTable("auditoria_operacion");
+
+        // ── Índice único en catálogo de actividades ────────────────────────────────────
         modelBuilder.Entity<CatalogoActividadEconomica>(e =>
         {
             e.HasIndex(a => a.Codigo).IsUnique();
         });
 
-        // Configuración explícita para AccesoContador para evitar múltiples cascadas de borrado
+        // ── Configuración explícita para AccesoContador (evitar cascadas múltiples) ───
         modelBuilder.Entity<AccesoContador>()
             .HasOne(a => a.Anfitrion)
             .WithMany(u => u.AccesosAnfitrion)

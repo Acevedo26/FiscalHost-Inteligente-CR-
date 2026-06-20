@@ -1,4 +1,4 @@
-using FiscalHost.Api.CR.Models.Entities;
+﻿
 
 namespace FiscalHost.Api.CR.Repositories;
 

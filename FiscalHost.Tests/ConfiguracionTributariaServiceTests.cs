@@ -12,9 +12,9 @@ public class ConfiguracionTributariaServiceTests
     private readonly IConfiguracionTributariaRepository _configRepo = Substitute.For<IConfiguracionTributariaRepository>();
     private readonly ConfiguracionTributariaService _sut;
 
-    private static readonly ActividadEconomica ActividadValida = new()
+    private static readonly CatalogoActividadEconomica ActividadValida = new()
     {
-        Id = 1, Codigo = "551001", Descripcion = "Hoteles y alojamiento turístico", Activa = true
+        Codigo = "551001", Descripcion = "Hoteles y alojamiento turístico", Vigente = true
     };
 
     public ConfiguracionTributariaServiceTests()
@@ -26,7 +26,7 @@ public class ConfiguracionTributariaServiceTests
     [Fact]
     public async Task GuardarConfiguracion_CodigoInvalido_RetornaError()
     {
-        _actividadRepo.GetByCodigoAsync("999999").Returns((ActividadEconomica?)null);
+        _actividadRepo.GetByCodigoAsync("999999").Returns((CatalogoActividadEconomica?)null);
         var request = BuildRequest(codigoActividad: "999999");
 
         var (success, error, data) = await _sut.GuardarConfiguracionAsync(request);
@@ -73,13 +73,13 @@ public class ConfiguracionTributariaServiceTests
     [Fact]
     public async Task GuardarConfiguracion_CambioActividad_MuestraAdvertencia()
     {
-        var actividadNueva = new ActividadEconomica { Id = 2, Codigo = "682001", Descripcion = "Alquiler inmuebles", Activa = true };
+        var actividadNueva = new CatalogoActividadEconomica { Codigo = "682001", Descripcion = "Alquiler inmuebles", Vigente = true };
         _actividadRepo.GetByCodigoAsync("682001").Returns(actividadNueva);
 
         var existing = new ConfiguracionTributaria
         {
             Id = 1, AnfitrionId = "anf-001",
-            ActividadEconomicaId = 1, ActividadEconomica = ActividadValida,
+            CodigoActividad = "551001", ActividadEconomica = ActividadValida,
             TribuCr = "TRIBU-ANF-001-551001", DireccionFiscal = "San José", Nise = "1234567890"
         };
         _configRepo.GetByAnfitrionIdAsync("anf-001").Returns(existing);
@@ -97,13 +97,13 @@ public class ConfiguracionTributariaServiceTests
     [Fact]
     public async Task GuardarConfiguracion_CambioActividad_RegistraAuditoria()
     {
-        var actividadNueva = new ActividadEconomica { Id = 2, Codigo = "682001", Descripcion = "Alquiler inmuebles", Activa = true };
+        var actividadNueva = new CatalogoActividadEconomica { Codigo = "682001", Descripcion = "Alquiler inmuebles", Vigente = true };
         _actividadRepo.GetByCodigoAsync("682001").Returns(actividadNueva);
 
         var existing = new ConfiguracionTributaria
         {
             Id = 1, AnfitrionId = "anf-001",
-            ActividadEconomicaId = 1, ActividadEconomica = ActividadValida,
+            CodigoActividad = "551001", ActividadEconomica = ActividadValida,
             TribuCr = "TRIBU-ANF-001-551001", DireccionFiscal = "San José", Nise = "1234567890"
         };
         _configRepo.GetByAnfitrionIdAsync("anf-001").Returns(existing);
@@ -125,7 +125,7 @@ public class ConfiguracionTributariaServiceTests
         var existing = new ConfiguracionTributaria
         {
             Id = 1, AnfitrionId = "anf-001",
-            ActividadEconomicaId = 1, ActividadEconomica = ActividadValida,
+            CodigoActividad = "551001", ActividadEconomica = ActividadValida,
             TribuCr = "TRIBU-ANF-001-551001", DireccionFiscal = "San José", Nise = "1234567890"
         };
         _configRepo.GetByAnfitrionIdAsync("anf-001").Returns(existing);
@@ -139,7 +139,7 @@ public class ConfiguracionTributariaServiceTests
     [Fact]
     public async Task GetActividades_RetornaListaActiva()
     {
-        _actividadRepo.GetAllActivasAsync().Returns(new List<ActividadEconomica> { ActividadValida });
+        _actividadRepo.GetAllActivasAsync().Returns(new List<CatalogoActividadEconomica> { ActividadValida });
 
         var result = await _sut.GetActividadesAsync();
 

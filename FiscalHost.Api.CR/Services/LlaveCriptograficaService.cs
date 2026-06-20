@@ -1,7 +1,5 @@
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using FiscalHost.Api.CR.Models.DTOs;
-using FiscalHost.Api.CR.Models.Entities;
 using FiscalHost.Api.CR.Repositories;
 
 namespace FiscalHost.Api.CR.Services;

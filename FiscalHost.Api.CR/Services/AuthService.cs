@@ -1,6 +1,3 @@
-using FiscalHost.Api.CR.Models.DTOs;
-using FiscalHost.Api.CR.Models.Entities;
-using FiscalHost.Api.CR.Models.Enums;
 using FiscalHost.Api.CR.Repositories;
 using System.Text.RegularExpressions;
 

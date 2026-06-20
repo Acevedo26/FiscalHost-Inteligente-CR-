@@ -1,5 +1,3 @@
-using FiscalHost.Api.CR.Models.Enums.Identity;
-
 namespace FiscalHost.Api.CR.Models.Entities.Identity;
 
 public class ConfiguracionTributaria
@@ -7,9 +5,9 @@ public class ConfiguracionTributaria
     public int Id { get; set; }
     public string AnfitrionId { get; set; } = string.Empty;
 
-    // Actividad económica
-    public int ActividadEconomicaId { get; set; }
-    public ActividadEconomica ActividadEconomica { get; set; } = null!;
+    // Actividad económica — referencia al catálogo DGT (tabla catalogo_actividad_economica)
+    public string CodigoActividad { get; set; } = string.Empty;
+    public CatalogoActividadEconomica? ActividadEconomica { get; set; }
 
     // TRIBU-CR
     public string TribuCr { get; set; } = string.Empty;

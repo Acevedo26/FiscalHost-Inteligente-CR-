@@ -12,14 +12,14 @@ public class ConfiguracionTributariaIntegrationTests : IDisposable
     private readonly AppDbContext _db;
     private readonly ConfiguracionTributariaService _sut;
 
-    private static readonly ActividadEconomica Actividad551001 = new()
+    private static readonly CatalogoActividadEconomica Actividad551001 = new()
     {
-        Id = 1, Codigo = "551001", Descripcion = "Hoteles y alojamiento turístico", Activa = true
+        Codigo = "551001", Descripcion = "Hoteles y alojamiento turístico", Vigente = true
     };
 
-    private static readonly ActividadEconomica Actividad682001 = new()
+    private static readonly CatalogoActividadEconomica Actividad682001 = new()
     {
-        Id = 2, Codigo = "682001", Descripcion = "Alquiler de inmuebles", Activa = true
+        Codigo = "682001", Descripcion = "Alquiler de inmuebles", Vigente = true
     };
 
     public ConfiguracionTributariaIntegrationTests()
@@ -29,7 +29,7 @@ public class ConfiguracionTributariaIntegrationTests : IDisposable
             .Options;
 
         _db = new AppDbContext(options);
-        _db.ActividadesEconomicas.AddRange(Actividad551001, Actividad682001);
+        _db.CatalogoActividadesEconomicas.AddRange(Actividad551001, Actividad682001);
         _db.SaveChanges();
 
         var actividadRepo = new ActividadEconomicaRepository(_db);

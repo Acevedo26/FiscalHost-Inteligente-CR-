@@ -1,6 +1,3 @@
-using FiscalHost.Api.CR.Models.DTOs;
-using FiscalHost.Api.CR.Models.Entities;
-using FiscalHost.Api.CR.Models.Enums;
 using FiscalHost.Api.CR.Repositories;
 
 namespace FiscalHost.Api.CR.Services;
@@ -23,7 +20,6 @@ public class ConfiguracionTributariaService(
         var actividades = await actividadRepo.GetAllActivasAsync();
         return actividades.Select(a => new ActividadEconomicaResponse
         {
-            Id = a.Id,
             Codigo = a.Codigo,
             Descripcion = a.Descripcion
         });
@@ -49,7 +45,7 @@ public class ConfiguracionTributariaService(
             var config = new ConfiguracionTributaria
             {
                 AnfitrionId = request.AnfitrionId,
-                ActividadEconomicaId = actividad.Id,
+                CodigoActividad = actividad.Codigo,
                 TribuCr = GenerarTribuCr(request.AnfitrionId, request.CodigoActividad),
                 DireccionFiscal = request.DireccionFiscal,
                 Nise = request.Nise
@@ -70,7 +66,7 @@ public class ConfiguracionTributariaService(
             if (cambioActividad)
                 advertencia = "El cambio de actividad económica puede afectar sus obligaciones fiscales vigentes. Consulte con un contador autorizado.";
 
-            existing.ActividadEconomicaId = actividad.Id;
+            existing.CodigoActividad = actividad.Codigo;
             existing.TribuCr = GenerarTribuCr(request.AnfitrionId, request.CodigoActividad);
             existing.DireccionFiscal = request.DireccionFiscal;
             existing.Nise = request.Nise;
@@ -114,7 +110,7 @@ public class ConfiguracionTributariaService(
     {
         Id = c.Id,
         AnfitrionId = c.AnfitrionId,
-        CodigoActividad = c.ActividadEconomica?.Codigo ?? string.Empty,
+        CodigoActividad = c.ActividadEconomica?.Codigo ?? c.CodigoActividad,
         DescripcionActividad = c.ActividadEconomica?.Descripcion ?? string.Empty,
         TribuCr = c.TribuCr,
         DireccionFiscal = c.DireccionFiscal,

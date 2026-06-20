@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using FiscalHost.Api.CR.Models.Enums;
+using FiscalHost.Api.CR.Models.Entities.TaxIntelligence;
 
 namespace FiscalHost.Api.CR.Models.Entities.Identity;
 
@@ -19,6 +20,9 @@ public class PerfilTributario
     [Column("codigo_actividad_economica")]
     [MaxLength(20)]
     public string CodigoActividadEconomica { get; set; } = string.Empty;
+
+    [ForeignKey("CodigoActividadEconomica")]
+    public CatalogoActividadEconomica? ActividadEconomica { get; set; }
 
     [Column("descripcion_actividad")]
     public string DescripcionActividad { get; set; } = string.Empty;
