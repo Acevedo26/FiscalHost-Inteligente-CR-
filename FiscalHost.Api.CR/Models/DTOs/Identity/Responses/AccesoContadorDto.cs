@@ -3,6 +3,13 @@ using FiscalHost.Api.CR.Models.Enums;
 
 namespace FiscalHost.Api.CR.Models.DTOs.Identity.Responses;
 
+// ========================================================================
+// DTO de Response (Salida): Contiene la información formateada que la API
+// le devuelve al frontend para mostrar en pantalla, ocultando, de esta
+// manera, cualquier dato sensible.
+// ========================================================================
+
+
 public class AccesoContadorDto
 {
     public Guid AccesoId { get; set; }
@@ -16,3 +23,5 @@ public class AccesoContadorDto
     public DateTimeOffset? FechaRevocacion { get; set; }
     public string Estado { get; set; } = string.Empty;
 }
+
+

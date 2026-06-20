@@ -50,30 +50,41 @@ public class OperacionManualService(
     public async Task<(bool success, string? error)> RegistrarGastoAsync(
         GastoOperativoRequest request)
     {
-        if (request.Monto <= 0)
+        if (request.MontoTotal <= 0)
             return (false, "El monto debe ser mayor que cero.");
 
-        if (request.FechaGasto > DateTime.UtcNow)
+        if (request.FechaEmision > DateOnly.FromDateTime(DateTime.UtcNow))
             return (false, "La fecha del gasto no puede ser futura.");
 
-        var gasto = new GastoOperativo
+        var gasto = new Gasto
         {
-            AnfitrionId = request.AnfitrionId,
+            UsuarioId = request.UsuarioId,
+            PropiedadId = request.PropiedadId,
             Proveedor = request.Proveedor,
             NumeroFactura = request.NumeroFactura,
-            Monto = request.Monto,
-            ComprobanteUrl = request.ComprobanteUrl,
-            FechaGasto = request.FechaGasto
+            ClaveNumericaHacienda = request.ClaveNumericaHacienda,
+            MontoTotal = request.MontoTotal,
+            MontoIvaSoportado = request.MontoIvaSoportado,
+            MontoNeto = request.MontoNeto,
+            Moneda = request.Moneda,
+            TipoGasto = request.TipoGasto,
+            EsDeducibleRenta = request.EsDeducibleRenta,
+            EsCreditoFiscalValido = request.EsCreditoFiscalValido,
+            EvidenciaUrl = request.EvidenciaUrl,
+            EvidenciaNombreArchivo = request.EvidenciaNombreArchivo,
+            EvidenciaTipoMime = request.EvidenciaTipoMime,
+            EvidenciaTamanioBytes = request.EvidenciaTamanioBytes,
+            FechaEmision = request.FechaEmision
         };
 
         await repository.AddGastoAsync(gasto);
 
         await repository.AddAuditoriaAsync(new AuditoriaOperacion
         {
-            Entidad = "GastoOperativo",
-            Usuario = request.AnfitrionId,
+            Entidad = "Gasto",
+            Usuario = request.UsuarioId.ToString(),
             Accion = "CREACION",
-            Descripcion = "Gasto operativo registrado."
+            Descripcion = "Gasto registrado."
         });
 
         await repository.SaveChangesAsync();

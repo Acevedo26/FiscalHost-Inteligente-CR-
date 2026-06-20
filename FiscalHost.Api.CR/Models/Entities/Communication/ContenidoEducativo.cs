@@ -4,6 +4,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FiscalHost.Api.CR.Models.Entities.Communication;
 
+// ========================================================================
+// Entidad: Representa una tabla en la base de datos PostgreSQL, la cual se
+// utiliza exclusivamente por Entity Framework para operaciones de lectura
+// y escritura.
+// ========================================================================
+
+
 [Table("contenido_educativo", Schema = "fiscalhost_db")]
 public class ContenidoEducativo
 {
@@ -48,3 +55,5 @@ public class ContenidoEducativo
     [Column("published_at")]
     public DateTimeOffset? PublishedAt { get; set; }
 }
+
+

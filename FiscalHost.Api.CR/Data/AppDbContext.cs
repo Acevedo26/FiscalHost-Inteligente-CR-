@@ -89,7 +89,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.Entity<AuditoriaLlave>().ToTable("auditoria_llave");
         modelBuilder.Entity<AuditoriaOperacion>().ToTable("auditoria_operacion");
 
-        // ── Índice único en catálogo de actividades ────────────────────────────────────
+        // Índice único en catálogo de actividades
         modelBuilder.Entity<CatalogoActividadEconomica>(e =>
         {
             e.HasIndex(a => a.Codigo).IsUnique();

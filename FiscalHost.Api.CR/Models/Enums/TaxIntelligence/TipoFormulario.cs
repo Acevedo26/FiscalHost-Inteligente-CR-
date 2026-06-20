@@ -2,6 +2,13 @@ using NpgsqlTypes;
 
 namespace FiscalHost.Api.CR.Models.Enums.TaxIntelligence;
 
+// ========================================================================
+// Enum: Define un catálogo estricto de opciones válidas para la base de datos,
+// lo cual evita errores tipográficos al impedir que se guarde un estado
+// no contemplado.
+// ========================================================================
+
+
 public enum TipoFormulario
 {
     [PgName("D150")]
@@ -11,4 +18,5 @@ public enum TipoFormulario
     [PgName("D176")]
     D176
 }
+
 

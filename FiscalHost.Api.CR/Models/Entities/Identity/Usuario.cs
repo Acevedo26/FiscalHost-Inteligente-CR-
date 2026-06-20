@@ -6,6 +6,13 @@ using FiscalHost.Api.CR.Models.Enums;
 
 namespace FiscalHost.Api.CR.Models.Entities.Identity;
 
+// ========================================================================
+// Entidad: Representa una tabla en la base de datos PostgreSQL, la cual se
+// utiliza exclusivamente por Entity Framework para operaciones de lectura
+// y escritura.
+// ========================================================================
+
+
 [Table("usuario", Schema = "fiscalhost_db")]
 public class Usuario
 {
@@ -57,7 +64,7 @@ public class Usuario
     [Column("ultimo_acceso")]
     public DateTimeOffset? UltimoAcceso { get; set; }
 
-    // Relaciones (Propiedades de Navegación)
+    // Relaciones (Propiedades de NavegaciÃ³n)
     public PerfilTributario? PerfilTributario { get; set; }
     
     public ICollection<Propiedad> Propiedades { get; set; } = new List<Propiedad>();
@@ -78,3 +85,5 @@ public class Usuario
     [InverseProperty(nameof(AccesoContador.Contador))]
     public ICollection<AccesoContador> AccesosContador { get; set; } = new List<AccesoContador>();
 }
+
+

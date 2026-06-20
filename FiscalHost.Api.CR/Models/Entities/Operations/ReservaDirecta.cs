@@ -1,5 +1,12 @@
 namespace FiscalHost.Api.CR.Models.Entities.Operations;
 
+// ========================================================================
+// Entidad: Representa una tabla en la base de datos PostgreSQL, la cual se
+// utiliza exclusivamente por Entity Framework para operaciones de lectura
+// y escritura.
+// ========================================================================
+
+
 public class ReservaDirecta
 {
     public int Id { get; set; }
@@ -14,3 +21,5 @@ public class ReservaDirecta
 
     public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
 }
+
+

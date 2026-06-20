@@ -5,6 +5,13 @@ using FiscalHost.Api.CR.Models.Enums;
 
 namespace FiscalHost.Api.CR.Models.Entities.Operations;
 
+// ========================================================================
+// Entidad: Representa una tabla en la base de datos PostgreSQL, la cual se
+// utiliza exclusivamente por Entity Framework para operaciones de lectura
+// y escritura.
+// ========================================================================
+
+
 [Table("reserva", Schema = "fiscalhost_db")]
 public class Reserva
 {
@@ -99,3 +106,5 @@ public class Reserva
     [Column("metadata", TypeName = "jsonb")]
     public string Metadata { get; set; } = "{}";
 }
+
+

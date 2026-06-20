@@ -6,6 +6,13 @@ using FiscalHost.Api.CR.Models.Enums;
 
 namespace FiscalHost.Api.CR.Models.Entities.TaxIntelligence;
 
+// ========================================================================
+// Entidad: Representa una tabla en la base de datos PostgreSQL, la cual se
+// utiliza exclusivamente por Entity Framework para operaciones de lectura
+// y escritura.
+// ========================================================================
+
+
 [Table("periodo_fiscal", Schema = "fiscalhost_db")]
 public class PeriodoFiscal
 {
@@ -49,3 +56,5 @@ public class PeriodoFiscal
     public ICollection<CalculoFiscal> CalculosFiscales { get; set; } = new List<CalculoFiscal>();
     public ICollection<ObligacionTributaria> Obligaciones { get; set; } = new List<ObligacionTributaria>();
 }
+
+

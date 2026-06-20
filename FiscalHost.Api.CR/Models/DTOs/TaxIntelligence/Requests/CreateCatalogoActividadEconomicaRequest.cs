@@ -3,6 +3,13 @@ using System.ComponentModel.DataAnnotations;
 
 namespace FiscalHost.Api.CR.Models.DTOs.TaxIntelligence.Requests;
 
+// ========================================================================
+// DTO de Request (Entrada): Contiene, únicamente, los datos que el usuario
+// o frontend envía a la API al realizar una petición, sin incluir
+// identificadores generados ni campos de auditoría internos.
+// ========================================================================
+
+
 public class CreateCatalogoActividadEconomicaRequest
 {
     [Required]
@@ -22,3 +29,5 @@ public class CreateCatalogoActividadEconomicaRequest
 
     public DateTime? FechaVigenciaHasta { get; set; }
 }
+
+

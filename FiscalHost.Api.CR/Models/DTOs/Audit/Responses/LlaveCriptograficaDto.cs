@@ -4,6 +4,13 @@ using Microsoft.AspNetCore.Http;
 
 namespace FiscalHost.Api.CR.Models.DTOs.Audit.Responses;
 
+// ========================================================================
+// DTO de Response (Salida): Contiene la información formateada que la API
+// le devuelve al frontend para mostrar en pantalla, ocultando, de esta
+// manera, cualquier dato sensible.
+// ========================================================================
+
+
 public class CargarLlaveRequest
 {
     [Required] public string AnfitrionId { get; set; } = string.Empty;
@@ -30,3 +37,4 @@ public class LlaveCriptograficaResponse
 public class LlaveCriptograficaDto : LlaveCriptograficaResponse
 {
 }
+

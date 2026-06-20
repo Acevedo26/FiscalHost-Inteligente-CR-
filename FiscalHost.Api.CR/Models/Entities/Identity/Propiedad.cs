@@ -6,6 +6,13 @@ using FiscalHost.Api.CR.Models.Enums;
 
 namespace FiscalHost.Api.CR.Models.Entities.Identity;
 
+// ========================================================================
+// Entidad: Representa una tabla en la base de datos PostgreSQL, la cual se
+// utiliza exclusivamente por Entity Framework para operaciones de lectura
+// y escritura.
+// ========================================================================
+
+
 [Table("propiedad", Schema = "fiscalhost_db")]
 public class Propiedad
 {
@@ -48,3 +55,5 @@ public class Propiedad
     public ICollection<Reserva> Reservas { get; set; } = new List<Reserva>();
     public ICollection<Gasto> Gastos { get; set; } = new List<Gasto>();
 }
+
+

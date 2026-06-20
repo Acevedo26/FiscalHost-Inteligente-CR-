@@ -4,6 +4,13 @@ using FiscalHost.Api.CR.Models.Enums;
 
 namespace FiscalHost.Api.CR.Models.DTOs.TaxIntelligence.Requests;
 
+// ========================================================================
+// DTO de Request (Entrada): Contiene, únicamente, los datos que el usuario
+// o frontend envía a la API al realizar una petición, sin incluir
+// identificadores generados ni campos de auditoría internos.
+// ========================================================================
+
+
 public class CreateObligacionTributariaRequest
 {
     public Guid? CalculoId { get; set; }
@@ -23,3 +30,5 @@ public class CreateObligacionTributariaRequest
     [Required]
     public DateTime FechaVencimiento { get; set; }
 }
+
+

@@ -5,6 +5,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FiscalHost.Api.CR.Models.Entities.Audit;
 
+// ========================================================================
+// Entidad: Representa una tabla en la base de datos PostgreSQL, la cual se
+// utiliza exclusivamente por Entity Framework para operaciones de lectura
+// y escritura.
+// ========================================================================
+
+
 public class LlaveCriptografica
 {
     [Key]
@@ -68,3 +75,5 @@ public class LlaveCriptografica
     [NotMapped]
     public bool Activa { get => Estado == "ACTIVA"; set => Estado = value ? "ACTIVA" : "INACTIVA"; }
 }
+
+

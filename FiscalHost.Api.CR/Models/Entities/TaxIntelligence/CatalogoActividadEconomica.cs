@@ -5,6 +5,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FiscalHost.Api.CR.Models.Entities.TaxIntelligence;
 
+// ========================================================================
+// Entidad: Representa una tabla en la base de datos PostgreSQL, la cual se
+// utiliza exclusivamente por Entity Framework para operaciones de lectura
+// y escritura.
+// ========================================================================
+
+
 [Table("catalogo_actividad_economica", Schema = "fiscalhost_db")]
 public class CatalogoActividadEconomica
 {
@@ -33,3 +40,5 @@ public class CatalogoActividadEconomica
 
     public ICollection<PerfilTributario> PerfilesTributarios { get; set; } = new List<PerfilTributario>();
 }
+
+

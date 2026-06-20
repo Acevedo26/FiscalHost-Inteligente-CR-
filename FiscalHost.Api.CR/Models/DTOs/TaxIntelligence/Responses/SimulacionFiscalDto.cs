@@ -3,6 +3,13 @@ using FiscalHost.Api.CR.Models.Enums;
 
 namespace FiscalHost.Api.CR.Models.DTOs.TaxIntelligence.Responses;
 
+// ========================================================================
+// DTO de Response (Salida): Contiene la información formateada que la API
+// le devuelve al frontend para mostrar en pantalla, ocultando, de esta
+// manera, cualquier dato sensible.
+// ========================================================================
+
+
 public class SimulacionFiscalDto
 {
     public Guid SimulacionId { get; set; }
@@ -14,3 +21,5 @@ public class SimulacionFiscalDto
     public string ParametrosEntrada { get; set; } = "{}";
     public string Resultados { get; set; } = "{}";
 }
+
+

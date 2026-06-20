@@ -4,6 +4,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FiscalHost.Api.CR.Models.Entities.Identity;
 
+// ========================================================================
+// Entidad: Representa una tabla en la base de datos PostgreSQL, la cual se
+// utiliza exclusivamente por Entity Framework para operaciones de lectura
+// y escritura.
+// ========================================================================
+
+
 [Table("acceso_contador", Schema = "fiscalhost_db")]
 public class AccesoContador
 {
@@ -40,3 +47,5 @@ public class AccesoContador
     [Column("estado")]
     public string Estado { get; set; } = string.Empty;
 }
+
+

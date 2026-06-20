@@ -3,6 +3,13 @@ using FiscalHost.Api.CR.Models.Enums;
 
 namespace FiscalHost.Api.CR.Models.DTOs.Identity.Responses;
 
+// ========================================================================
+// DTO de Response (Salida): Contiene la información formateada que la API
+// le devuelve al frontend para mostrar en pantalla, ocultando, de esta
+// manera, cualquier dato sensible.
+// ========================================================================
+
+
 public class PropiedadDto
 {
     public Guid PropiedadId { get; set; }
@@ -17,3 +24,5 @@ public class PropiedadDto
     public TipoMoneda? TipoMonedaValor { get; set; }
     public bool Activa { get; set; }
 }
+
+

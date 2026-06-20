@@ -4,6 +4,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FiscalHost.Api.CR.Models.Entities.TaxIntelligence;
 
+// ========================================================================
+// Entidad: Representa una tabla en la base de datos PostgreSQL, la cual se
+// utiliza exclusivamente por Entity Framework para operaciones de lectura
+// y escritura.
+// ========================================================================
+
+
 [Table("simulacion_fiscal", Schema = "fiscalhost_db")]
 public class SimulacionFiscal
 {
@@ -33,3 +40,5 @@ public class SimulacionFiscal
     [Column("resultados", TypeName = "jsonb")]
     public string Resultados { get; set; } = "{}";
 }
+
+

@@ -6,6 +6,13 @@ using FiscalHost.Api.CR.Models.Entities.TaxIntelligence;
 
 namespace FiscalHost.Api.CR.Models.Entities.Identity;
 
+// ========================================================================
+// Entidad: Representa una tabla en la base de datos PostgreSQL, la cual se
+// utiliza exclusivamente por Entity Framework para operaciones de lectura
+// y escritura.
+// ========================================================================
+
+
 [Table("perfil_tributario", Schema = "fiscalhost_db")]
 public class PerfilTributario
 {
@@ -53,3 +60,5 @@ public class PerfilTributario
     [Column("datos_complementarios", TypeName = "jsonb")]
     public string DatosComplementarios { get; set; } = "{}";
 }
+
+

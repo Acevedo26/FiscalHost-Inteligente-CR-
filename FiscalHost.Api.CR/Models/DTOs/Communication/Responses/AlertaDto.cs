@@ -3,6 +3,13 @@ using FiscalHost.Api.CR.Models.Enums;
 
 namespace FiscalHost.Api.CR.Models.DTOs.Communication.Responses;
 
+// ========================================================================
+// DTO de Response (Salida): Contiene la información formateada que la API
+// le devuelve al frontend para mostrar en pantalla, ocultando, de esta
+// manera, cualquier dato sensible.
+// ========================================================================
+
+
 public class AlertaDto
 {
     public Guid AlertaId { get; set; }
@@ -21,3 +28,5 @@ public class AlertaDto
     public DateTimeOffset? FechaLectura { get; set; }
     public short IntentosEnvio { get; set; }
 }
+
+

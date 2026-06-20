@@ -3,6 +3,13 @@ using FiscalHost.Api.CR.Models.Enums;
 
 namespace FiscalHost.Api.CR.Models.DTOs.TaxIntelligence.Responses;
 
+// ========================================================================
+// DTO de Response (Salida): Contiene la información formateada que la API
+// le devuelve al frontend para mostrar en pantalla, ocultando, de esta
+// manera, cualquier dato sensible.
+// ========================================================================
+
+
 public class PeriodoFiscalDto
 {
     public Guid PeriodoId { get; set; }
@@ -18,3 +25,5 @@ public class PeriodoFiscalDto
     public decimal? TasaInteresMoraAnual { get; set; }
     public string NormativaAplicable { get; set; } = string.Empty;
 }
+
+

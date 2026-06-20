@@ -3,6 +3,13 @@ using FiscalHost.Api.CR.Models.Enums;
 
 namespace FiscalHost.Api.CR.Models.DTOs.TaxIntelligence.Responses;
 
+// ========================================================================
+// DTO de Response (Salida): Contiene la información formateada que la API
+// le devuelve al frontend para mostrar en pantalla, ocultando, de esta
+// manera, cualquier dato sensible.
+// ========================================================================
+
+
 public class ExportacionDto
 {
     public Guid ExportacionId { get; set; }
@@ -16,3 +23,5 @@ public class ExportacionDto
     public bool EstaProtegido { get; set; }
     public DateTimeOffset? ExpiraAt { get; set; }
 }
+
+

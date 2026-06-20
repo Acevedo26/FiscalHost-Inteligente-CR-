@@ -4,6 +4,13 @@ using FiscalHost.Api.CR.Models.Enums;
 
 namespace FiscalHost.Api.CR.Models.DTOs.Operations.Requests;
 
+// ========================================================================
+// DTO de Request (Entrada): Contiene, únicamente, los datos que el usuario
+// o frontend envía a la API al realizar una petición, sin incluir
+// identificadores generados ni campos de auditoría internos.
+// ========================================================================
+
+
 public class CreateReservaRequest
 {
     public Guid? PropiedadId { get; set; }
@@ -45,3 +52,5 @@ public class CreateReservaRequest
 
     public string Metadata { get; set; } = "{}";
 }
+
+

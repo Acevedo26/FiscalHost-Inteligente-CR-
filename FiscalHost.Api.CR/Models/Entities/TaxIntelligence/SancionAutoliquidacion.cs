@@ -4,6 +4,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FiscalHost.Api.CR.Models.Entities.TaxIntelligence;
 
+// ========================================================================
+// Entidad: Representa una tabla en la base de datos PostgreSQL, la cual se
+// utiliza exclusivamente por Entity Framework para operaciones de lectura
+// y escritura.
+// ========================================================================
+
+
 [Table("sancion_autoliquidacion", Schema = "fiscalhost_db")]
 public class SancionAutoliquidacion
 {
@@ -55,3 +62,5 @@ public class SancionAutoliquidacion
     [Column("estado")]
     public string Estado { get; set; } = string.Empty;
 }
+
+

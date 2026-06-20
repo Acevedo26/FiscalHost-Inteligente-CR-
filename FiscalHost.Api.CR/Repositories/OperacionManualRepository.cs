@@ -1,4 +1,4 @@
-﻿
+
 
 namespace FiscalHost.Api.CR.Repositories;
 
@@ -6,7 +6,7 @@ public interface IOperacionManualRepository
 {
     Task AddReservaAsync(ReservaDirecta reserva);
 
-    Task AddGastoAsync(GastoOperativo gasto);
+    Task AddGastoAsync(FiscalHost.Api.CR.Models.Entities.Operations.Gasto gasto);
 
     Task AddAuditoriaAsync(AuditoriaOperacion auditoria);
 
@@ -20,7 +20,7 @@ public class OperacionManualRepository : IOperacionManualRepository
         return Task.CompletedTask;
     }
 
-    public Task AddGastoAsync(GastoOperativo gasto)
+    public Task AddGastoAsync(FiscalHost.Api.CR.Models.Entities.Operations.Gasto gasto)
     {
         return Task.CompletedTask;
     }

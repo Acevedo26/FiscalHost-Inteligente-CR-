@@ -2,6 +2,13 @@ using System.ComponentModel.DataAnnotations;
 
 namespace FiscalHost.Api.CR.Models.DTOs.Identity.Requests;
 
+// ========================================================================
+// DTO de Response (Salida): Contiene la información formateada que la API
+// le devuelve al frontend para mostrar en pantalla, ocultando, de esta
+// manera, cualquier dato sensible.
+// ========================================================================
+
+
 public class RegistroUsuarioRequest
 {
     [Required]
@@ -31,3 +38,5 @@ public class RegistroUsuarioResponse
 
     public string Mensaje { get; set; } = string.Empty;
 }
+
+
