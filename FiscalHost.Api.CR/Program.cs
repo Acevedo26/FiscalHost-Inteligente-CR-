@@ -12,7 +12,7 @@ var dataSource = new NpgsqlDataSourceBuilder(
     .MapFiscalHostEnums()
     .Build();
 
-builder.Services.AddDbContext<AppDbContext>(opt => opt.UseNpgsql(dataSource));
+builder.Services.AddDbContext<AppDbContext>(opt => opt.UseNpgsql(dataSource, o => o.MigrationsHistoryTable("__EFMigrationsHistory", "fiscalhost_db")));
 
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -25,6 +25,8 @@ builder.Services.AddScoped<ILlaveCriptograficaService, LlaveCriptograficaService
 builder.Services.AddScoped<INotificacionService, NotificacionService>();
 builder.Services.AddScoped<IOperacionManualRepository, OperacionManualRepository>();
 builder.Services.AddScoped<IOperacionManualService, OperacionManualService>();
+builder.Services.AddScoped<IBlobStorageService, BlobStorageService>();
+builder.Services.AddScoped<IOcrService, OcrService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
