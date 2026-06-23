@@ -25,6 +25,8 @@ builder.Services.AddScoped<ILlaveCriptograficaService, LlaveCriptograficaService
 builder.Services.AddScoped<INotificacionService, NotificacionService>();
 builder.Services.AddScoped<IOperacionManualRepository, OperacionManualRepository>();
 builder.Services.AddScoped<IOperacionManualService, OperacionManualService>();
+builder.Services.AddScoped<IClasificacionIngresoRepository, ClasificacionIngresoRepository>();
+builder.Services.AddScoped<IClasificacionIngresoService, ClasificacionIngresoService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
