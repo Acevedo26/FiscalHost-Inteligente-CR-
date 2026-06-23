@@ -29,6 +29,8 @@ public static class NpgsqlEnumExtensions
         builder.MapEnum<EstadoLlave>($"{Schema}.estado_llave", nameTranslator: t);
         builder.MapEnum<OperacionAuditoria>($"{Schema}.operacion_auditoria", nameTranslator: t);
         builder.MapEnum<TipoMoneda>($"{Schema}.tipo_moneda", nameTranslator: t);
+        builder.MapEnum<ClasificacionIva>($"{Schema}.clasificacion_iva", nameTranslator: t);
+        builder.MapEnum<FuenteIngreso>($"{Schema}.fuente_ingreso", nameTranslator: t);
         return builder;
     }
 }

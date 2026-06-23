@@ -30,6 +30,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<ReservaDirecta> ReservasDirectas => Set<ReservaDirecta>();
     public DbSet<GastoOperativo> GastosOperativos => Set<GastoOperativo>();
     public DbSet<AuditoriaOperacion> AuditoriasOperacion => Set<AuditoriaOperacion>();
+    public DbSet<ClasificacionIngreso> ClasificacionesIngresos => Set<ClasificacionIngreso>();
+    public DbSet<AuditoriaClasificacionIngreso> AuditoriasClasificacionIngresos => Set<AuditoriaClasificacionIngreso>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -54,6 +56,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.HasPostgresEnum<EstadoLlave>("fiscalhost_db", "estado_llave");
         modelBuilder.HasPostgresEnum<OperacionAuditoria>("fiscalhost_db", "operacion_auditoria");
         modelBuilder.HasPostgresEnum<TipoMoneda>("fiscalhost_db", "tipo_moneda");
+        modelBuilder.HasPostgresEnum<ClasificacionIva>("fiscalhost_db", "clasificacion_iva");
+        modelBuilder.HasPostgresEnum<FuenteIngreso>("fiscalhost_db", "fuente_ingreso");
 
         // ── Mapeo explícito de nombres de tabla (snake_case en PostgreSQL) ──────────────
 
@@ -69,6 +73,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.Entity<ImportacionMasiva>().ToTable("importacion_masiva");
         modelBuilder.Entity<ReservaDirecta>().ToTable("reserva_directa");
         modelBuilder.Entity<GastoOperativo>().ToTable("gasto_operativo");
+        modelBuilder.Entity<ClasificacionIngreso>().ToTable("clasificacion_ingreso");
 
         // TaxIntelligence
         modelBuilder.Entity<CatalogoActividadEconomica>().ToTable("catalogo_actividad_economica");
@@ -88,6 +93,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.Entity<AuditoriaConfiguracion>().ToTable("auditoria_configuracion");
         modelBuilder.Entity<AuditoriaLlave>().ToTable("auditoria_llave");
         modelBuilder.Entity<AuditoriaOperacion>().ToTable("auditoria_operacion");
+        modelBuilder.Entity<AuditoriaClasificacionIngreso>().ToTable("auditoria_clasificacion_ingreso");
 
         // Índice único en catálogo de actividades
         modelBuilder.Entity<CatalogoActividadEconomica>(e =>
@@ -107,5 +113,30 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             .WithMany(u => u.AccesosContador)
             .HasForeignKey(a => a.ContadorId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<ClasificacionIngreso>(e =>
+        {
+            e.Property(c => c.AnfitrionId).HasMaxLength(50).IsRequired();
+            e.Property(c => c.MontoBruto).HasPrecision(18, 2);
+            e.Property(c => c.MontoIva).HasPrecision(18, 2);
+            e.Property(c => c.BaseImponibleRenta).HasPrecision(18, 2);
+            e.Property(c => c.ImpuestoRenta).HasPrecision(18, 2);
+            e.Property(c => c.MontoRetencion).HasPrecision(18, 2);
+            e.Property(c => c.NetoAnfitrion).HasPrecision(18, 2);
+            e.Property(c => c.JustificacionManual).HasMaxLength(500);
+            e.HasIndex(c => c.AnfitrionId);
+        });
+
+        modelBuilder.Entity<AuditoriaClasificacionIngreso>(e =>
+        {
+            e.Property(a => a.UsuarioId).HasMaxLength(50).IsRequired();
+            e.Property(a => a.ValorAnterior).HasMaxLength(100).IsRequired();
+            e.Property(a => a.ValorNuevo).HasMaxLength(100).IsRequired();
+            e.Property(a => a.Justificacion).HasMaxLength(500).IsRequired();
+            e.HasOne(a => a.ClasificacionIngreso)
+             .WithMany(c => c.Auditorias)
+             .HasForeignKey(a => a.ClasificacionIngresoId);
+        });
+
     }
 }
