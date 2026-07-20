@@ -1,4 +1,4 @@
-﻿using FiscalHost.Api.CR.Models.DTOs;
+using FiscalHost.Api.CR.Models.DTOs;
 using FiscalHost.Api.CR.Repositories;
 using FiscalHost.Api.CR.Services;
 using NSubstitute;
@@ -14,7 +14,7 @@ public class OperacionManualServiceTests
 
     public OperacionManualServiceTests()
     {
-        _sut = new OperacionManualService(_repository);
+        _sut = new OperacionManualService(_repository, Substitute.For<IBlobStorageService>(), Substitute.For<IOcrService>());
     }
 
     [Fact]
@@ -82,11 +82,11 @@ public class OperacionManualServiceTests
     {
         var request = new GastoOperativoRequest
         {
-            AnfitrionId = "anf-001",
+            UsuarioId = Guid.NewGuid(),
             Proveedor = "Proveedor",
             NumeroFactura = "FAC001",
-            FechaGasto = DateTime.UtcNow,
-            Monto = -10
+            FechaEmision = DateOnly.FromDateTime(DateTime.UtcNow),
+            MontoTotal = -10
         };
 
         var (success, _) =
@@ -100,11 +100,11 @@ public class OperacionManualServiceTests
     {
         var request = new GastoOperativoRequest
         {
-            AnfitrionId = "anf-001",
+            UsuarioId = Guid.NewGuid(),
             Proveedor = "Proveedor",
             NumeroFactura = "FAC001",
-            FechaGasto = DateTime.UtcNow,
-            Monto = 5000
+            FechaEmision = DateOnly.FromDateTime(DateTime.UtcNow),
+            MontoTotal = 5000
         };
 
         var (success, error) =
@@ -115,6 +115,6 @@ public class OperacionManualServiceTests
 
         await _repository.Received(1)
             .AddGastoAsync(
-                Arg.Any<GastoOperativo>());
+                Arg.Any<FiscalHost.Api.CR.Models.Entities.Operations.Gasto>());
     }
 }

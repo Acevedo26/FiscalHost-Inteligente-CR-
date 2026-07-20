@@ -14,6 +14,8 @@ var dataSource = new NpgsqlDataSourceBuilder(
 
 builder.Services.AddDbContext<AppDbContext>(opt => opt.UseNpgsql(dataSource, o => o.MigrationsHistoryTable("__EFMigrationsHistory", "fiscalhost_db")));
 
+builder.Services.Configure<FiscalHost.Api.CR.Models.TaxSettings>(builder.Configuration.GetSection("TaxSettings"));
+
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
@@ -27,6 +29,10 @@ builder.Services.AddScoped<IOperacionManualRepository, OperacionManualRepository
 builder.Services.AddScoped<IOperacionManualService, OperacionManualService>();
 builder.Services.AddScoped<IBlobStorageService, BlobStorageService>();
 builder.Services.AddScoped<IOcrService, OcrService>();
+builder.Services.AddScoped<IObligacionTributariaRepository, ObligacionTributariaRepository>();
+builder.Services.AddScoped<IObligacionTributariaService, ObligacionTributariaService>();
+
+builder.Services.AddHostedService<MoraBackgroundService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
