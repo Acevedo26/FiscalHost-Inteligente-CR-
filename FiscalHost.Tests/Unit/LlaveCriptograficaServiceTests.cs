@@ -107,17 +107,19 @@ public class LlaveCriptograficaServiceTests
     [Fact]
     public async Task GetLlave_AnfitrionConLlave_RetornaDatos()
     {
+        var id = Guid.NewGuid();
+        var idStr = id.ToString();
         var llave = new LlaveCriptografica
         {
-            Id = 1, AnfitrionId = "ANF001", NombreArchivo = "llave.p12",
+            Id = 1, UsuarioId = id, NombreArchivo = "llave.p12",
             ContenidoCifrado = [], ContrasenaHash = "hash", Activa = true
         };
-        _repo.GetByAnfitrionIdAsync("ANF001").Returns(llave);
+        _repo.GetByAnfitrionIdAsync(idStr).Returns(llave);
 
-        var result = await _service.GetLlaveAsync("ANF001");
+        var result = await _service.GetLlaveAsync(idStr);
 
         Assert.NotNull(result);
-        Assert.Equal("ANF001", result.AnfitrionId);
+        Assert.Equal(idStr, result.AnfitrionId);
     }
 
     private static IFormFile CrearFormFile(string nombre, byte[] contenido)

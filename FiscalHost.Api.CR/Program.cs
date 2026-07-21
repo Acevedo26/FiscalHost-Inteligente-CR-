@@ -27,12 +27,15 @@ builder.Services.AddScoped<ILlaveCriptograficaService, LlaveCriptograficaService
 builder.Services.AddScoped<INotificacionService, NotificacionService>();
 builder.Services.AddScoped<IOperacionManualRepository, OperacionManualRepository>();
 builder.Services.AddScoped<IOperacionManualService, OperacionManualService>();
-builder.Services.AddScoped<IBlobStorageService, BlobStorageService>();
+builder.Services.AddScoped<IBlobStorageService, LocalStorageService>();
 builder.Services.AddScoped<IOcrService, OcrService>();
 builder.Services.AddScoped<IObligacionTributariaRepository, ObligacionTributariaRepository>();
 builder.Services.AddScoped<IObligacionTributariaService, ObligacionTributariaService>();
-
 builder.Services.AddHostedService<MoraBackgroundService>();
+
+builder.Services.AddScoped<IImportacionMasivaService, ImportacionMasivaService>();
+builder.Services.AddScoped<IImportacionMasivaRepository, ImportacionMasivaRepository>();
+builder.Services.AddScoped<ICalculoIvaService, CalculoIvaService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

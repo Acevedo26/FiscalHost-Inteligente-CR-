@@ -1,4 +1,6 @@
 using FiscalHost.Api.CR.Models.DTOs;
+using FiscalHost.Api.CR.Models.DTOs.Operations.Requests;
+using FiscalHost.Api.CR.Models.Entities.Operation
 using FiscalHost.Api.CR.Repositories;
 using FiscalHost.Api.CR.Services;
 using NSubstitute;
@@ -9,6 +11,10 @@ public class OperacionManualServiceTests
 {
     private readonly IOperacionManualRepository _repository =
         Substitute.For<IOperacionManualRepository>();
+    private readonly IBlobStorageService _blobStorageService = 
+        Substitute.For<IBlobStorageService>();
+    private readonly IOcrService _ocrService = 
+        Substitute.For<IOcrService>();
 
     private readonly OperacionManualService _sut;
 
