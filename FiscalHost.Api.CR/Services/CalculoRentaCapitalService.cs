@@ -198,19 +198,17 @@ public class CalculoRentaCapitalService(
 		var regimenAnterior = perfil.RegimenTributario;
 		perfil.RegimenTributario = request.NuevoRegimen;
 
-		// NOTA: auditoria_operacion.EntidadId es "int" en la base de datos
-		// actual, no admite el Guid real de PerfilTributario; se deja en 0
-		// y el identificador real se registra en Descripcion.
 		await repository.AddAuditoriaCambioRegimenAsync(new AuditoriaOperacion
 		{
-			Entidad = nameof(Models.Entities.Identity.PerfilTributario),
-			EntidadId = 0,
-			Usuario = request.UsuarioId.ToString(),
-			Accion = OperacionAuditoria.CAMBIO_REGIMEN.ToString(),
-			Descripcion = $"Cambio de regimen tributario para PerfilId {perfil.PerfilId}",
-			ValorAnterior = regimenAnterior.ToString(),
-			ValorNuevo = request.NuevoRegimen.ToString(),
-			Justificacion = $"Solicitado por el anfitrion para el periodo {request.Mes:00}/{request.Anio}, respaldado con comprobantes de gastos validados."
+			AuditId = Guid.NewGuid(),
+			UsuarioId = request.UsuarioId,
+			Operacion = OperacionAuditoria.CAMBIO_REGIMEN,
+			TablaAfectada = nameof(Models.Entities.Identity.PerfilTributario),
+			RegistroId = perfil.PerfilId,
+			OldValues = regimenAnterior.ToString(),
+			NewValues = request.NuevoRegimen.ToString(),
+			Justificacion = $"Solicitado por el anfitrion para el periodo {request.Mes:00}/{request.Anio}, respaldado con comprobantes de gastos validados.",
+			CreatedAt = DateTimeOffset.UtcNow
 		});
 
 		await repository.SaveChangesAsync();

@@ -1,6 +1,5 @@
 using FiscalHost.Api.CR.Models.DTOs;
 using FiscalHost.Api.CR.Models.DTOs.Operations.Requests;
-using FiscalHost.Api.CR.Models.Entities.Operation
 using FiscalHost.Api.CR.Repositories;
 using FiscalHost.Api.CR.Services;
 using NSubstitute;
