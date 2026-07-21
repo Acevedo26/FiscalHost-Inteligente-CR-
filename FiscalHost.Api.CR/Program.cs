@@ -27,6 +27,8 @@ builder.Services.AddScoped<IOperacionManualRepository, OperacionManualRepository
 builder.Services.AddScoped<IOperacionManualService, OperacionManualService>();
 builder.Services.AddScoped<IBlobStorageService, BlobStorageService>();
 builder.Services.AddScoped<IOcrService, OcrService>();
+builder.Services.AddScoped<ICalculoRentaCapitalRepository, CalculoRentaCapitalRepository>();
+builder.Services.AddScoped<ICalculoRentaCapitalService, CalculoRentaCapitalService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
