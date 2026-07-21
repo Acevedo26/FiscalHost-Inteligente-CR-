@@ -29,6 +29,8 @@ builder.Services.AddScoped<IOperacionManualRepository, OperacionManualRepository
 builder.Services.AddScoped<IOperacionManualService, OperacionManualService>();
 builder.Services.AddScoped<IBlobStorageService, LocalStorageService>();
 builder.Services.AddScoped<IOcrService, OcrService>();
+builder.Services.AddScoped<ICalculoRentaCapitalRepository, CalculoRentaCapitalRepository>();
+builder.Services.AddScoped<ICalculoRentaCapitalService, CalculoRentaCapitalService>();
 builder.Services.AddScoped<IObligacionTributariaRepository, ObligacionTributariaRepository>();
 builder.Services.AddScoped<IObligacionTributariaService, ObligacionTributariaService>();
 builder.Services.AddScoped<IGeneradorBorradorRepository, GeneradorBorradorRepository>();

@@ -21,6 +21,9 @@ public enum TipoFormulario
     D116,
     [PgName("D176")]
     D176,
+	[PgName("D125")]
+	D125
+    D176,
     [PgName("D104")]
     D104
 }
