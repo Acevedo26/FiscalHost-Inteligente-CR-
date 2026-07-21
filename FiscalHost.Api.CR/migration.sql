@@ -668,3 +668,8 @@ VALUES ('20260622222412_UpdateAuditoriaOperacion', '8.0.0');
 
 COMMIT;
 
+
+-- Update Enum TipoFormulario
+ALTER TYPE fiscalhost_db.tipo_formulario ADD VALUE IF NOT EXISTS 'D104';
+ALTER TYPE fiscalhost_db.tipo_formulario ADD VALUE IF NOT EXISTS 'D125';
+
