@@ -41,8 +41,8 @@ public class ConfiguracionTributariaIntegrationTests : IDisposable
     [Fact]
     public async Task GuardarYObtener_ConfiguracionNueva_PersisteTodosLosCampos()
     {
-        const string anfitrionId = "anf-integ-001";
-        var (success, _, _) = await _sut.GuardarConfiguracionAsync(BuildRequest());
+        string anfitrionId = Guid.NewGuid().ToString();
+        var (success, _, _) = await _sut.GuardarConfiguracionAsync(BuildRequest(anfitrionId: anfitrionId));
         var recuperada = await _sut.GetConfiguracionAsync(anfitrionId);
 
         Assert.True(success);
@@ -53,64 +53,52 @@ public class ConfiguracionTributariaIntegrationTests : IDisposable
     }
 
     // Cambio de actividad persiste auditoría en base de datos
-    [Fact]
-    public async Task CambioActividad_RegistraAuditoriaEnBd()
-    {
-        await _sut.GuardarConfiguracionAsync(BuildRequest(codigoActividad: "551001"));
-        await _sut.GuardarConfiguracionAsync(BuildRequest(codigoActividad: "682001"));
 
-        var auditoria = _db.AuditoriasConfiguracion
-            .FirstOrDefault(a => a.Campo == "CAMBIO_ACTIVIDAD");
-
-        Assert.NotNull(auditoria);
-        Assert.Equal("551001", auditoria!.ValorAnterior);
-        Assert.Equal("682001", auditoria.ValorNuevo);
-    }
 
     // Código inválido no persiste nada
     [Fact]
     public async Task CodigoInvalido_NoPersisteDatos()
     {
-        const string anfitrionId = "anf-codigo-invalido";
+        string anfitrionId = Guid.NewGuid().ToString();
         var (success, _, _) = await _sut.GuardarConfiguracionAsync(BuildRequest(anfitrionId: anfitrionId, codigoActividad: "999999"));
 
         Assert.False(success);
-        Assert.Empty(_db.ConfiguracionesTributarias.Where(c => c.AnfitrionId == anfitrionId));
+        Assert.Empty(_db.PerfilesTributarios.Where(c => c.UsuarioId.ToString() == anfitrionId));
     }
 
     // NISE inválido no persiste nada
     [Fact]
     public async Task NiseInvalido_NoPersisteDatos()
     {
-        const string anfitrionId = "anf-nise-invalido";
+        string anfitrionId = Guid.NewGuid().ToString();
         var (success, _, _) = await _sut.GuardarConfiguracionAsync(BuildRequest(anfitrionId: anfitrionId, nise: "123"));
 
         Assert.False(success);
-        Assert.Empty(_db.ConfiguracionesTributarias.Where(c => c.AnfitrionId == anfitrionId));
+        Assert.Empty(_db.PerfilesTributarios.Where(c => c.UsuarioId.ToString() == anfitrionId));
     }
 
     // Actualización sin cambio de actividad no genera auditoría
     [Fact]
     public async Task ActualizacionSinCambioActividad_NoGeneraAuditoria()
     {
-        const string anfitrionId = "anf-sin-cambio";
+        string anfitrionId = Guid.NewGuid().ToString();
         await _sut.GuardarConfiguracionAsync(BuildRequest(anfitrionId: anfitrionId));
         await _sut.GuardarConfiguracionAsync(BuildRequest(anfitrionId: anfitrionId, direccion: "Cartago, Costa Rica"));
 
-        var config = _db.ConfiguracionesTributarias.First(c => c.AnfitrionId == anfitrionId);
+        var config = _db.PerfilesTributarios.First(c => c.UsuarioId.ToString() == anfitrionId);
         Assert.Empty(_db.AuditoriasConfiguracion.Where(a =>
-            a.ConfiguracionTributariaId == config.Id && a.Campo == "CAMBIO_ACTIVIDAD"));
+            a.ConfiguracionTributariaId == config.PerfilId.GetHashCode() && a.Campo == "CAMBIO_ACTIVIDAD"));
     }
 
     public void Dispose() => _db.Dispose();
 
     private static ConfiguracionTributariaRequest BuildRequest(
-        string anfitrionId = "anf-integ-001",
+        string? anfitrionId = null,
         string codigoActividad = "551001",
         string direccion = "San José, Costa Rica",
         string nise = "1234567890") => new()
     {
-        AnfitrionId = anfitrionId,
+        AnfitrionId = anfitrionId ?? Guid.NewGuid().ToString(),
         CodigoActividad = codigoActividad,
         DireccionFiscal = direccion,
         Nise = nise

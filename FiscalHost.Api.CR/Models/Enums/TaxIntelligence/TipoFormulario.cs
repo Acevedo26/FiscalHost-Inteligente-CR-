@@ -20,7 +20,9 @@ public enum TipoFormulario
     [PgName("D116")]
     D116,
     [PgName("D176")]
-    D176
+    D176,
+    [PgName("D104")]
+    D104
 }
 
 

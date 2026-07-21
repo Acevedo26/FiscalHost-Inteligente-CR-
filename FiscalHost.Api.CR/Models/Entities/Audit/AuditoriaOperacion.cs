@@ -1,36 +1,34 @@
+using FiscalHost.Api.CR.Models.Enums.Audit;
+using FiscalHost.Api.CR.Models.Enums.Identity;
+
 namespace FiscalHost.Api.CR.Models.Entities.Audit;
-
-// ========================================================================
-// Entidad: Representa una tabla en la base de datos PostgreSQL, la cual se
-// utiliza exclusivamente por Entity Framework para operaciones de lectura
-// y escritura.
-// ========================================================================
-
 
 public class AuditoriaOperacion
 {
-    public int Id { get; set; }
+    public Guid AuditId { get; set; } = Guid.NewGuid();
 
-    public string Entidad { get; set; } = string.Empty;
+    // Quién
+    public Guid? UsuarioId { get; set; }
+    public string? CorreoUsuario { get; set; }
+    public RolUsuario? RolUsuario { get; set; }
 
-    public int EntidadId { get; set; }
+    // Qué
+    public OperacionAuditoria Operacion { get; set; }
+    public string TablaAfectada { get; set; } = string.Empty;
+    public Guid? RegistroId { get; set; }
 
-    public string Usuario { get; set; } = string.Empty;
+    // Valores
+    public string? OldValues { get; set; }
+    public string? NewValues { get; set; }
+    public string[]? CamposModificados { get; set; }
 
-    public string Accion { get; set; } = string.Empty;
-
-    public string Descripcion { get; set; } = string.Empty;
-
-    // Se agregan campos para auditoría estricta según Ley 8968 (CR)
-    // Permiten conocer qué valor cambió específicamente.
-    public string? ValorAnterior { get; set; }
-    
-    public string? ValorNuevo { get; set; }
-    
-    // Campo obligatorio en caso de actualizaciones o eliminaciones (Law 8968)
+    // Justificación (Ley 8968)
     public string? Justificacion { get; set; }
 
-    public DateTime Fecha { get; set; } = DateTime.UtcNow;
+    // Contexto
+    public System.Net.IPAddress? IpOrigen { get; set; }
+    public string? UserAgent { get; set; }
+    public Guid? RequestId { get; set; }
+
+    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 }
-
-
