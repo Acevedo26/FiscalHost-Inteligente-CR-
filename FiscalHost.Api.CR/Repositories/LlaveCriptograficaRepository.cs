@@ -15,7 +15,7 @@ public interface ILlaveCriptograficaRepository
 public class LlaveCriptograficaRepository(AppDbContext db) : ILlaveCriptograficaRepository
 {
     public Task<LlaveCriptografica?> GetByAnfitrionIdAsync(string anfitrionId) =>
-        db.LlavesCriptograficas.FirstOrDefaultAsync(l => l.UsuarioId.ToString() == anfitrionId && l.Estado == "ACTIVA");
+        db.LlavesCriptograficas.FirstOrDefaultAsync(l => l.UsuarioId.ToString() == anfitrionId && l.Estado == EstadoLlave.ACTIVA);
 
     public async Task AddAsync(LlaveCriptografica llave) => await db.LlavesCriptograficas.AddAsync(llave);
 

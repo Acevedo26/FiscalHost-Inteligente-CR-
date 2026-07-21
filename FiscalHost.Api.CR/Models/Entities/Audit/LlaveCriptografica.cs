@@ -46,7 +46,7 @@ public class LlaveCriptografica
     public string? EmisorCertificado { get; set; }
 
     [Column("estado")]
-    public string Estado { get; set; } = "ACTIVA";
+    public EstadoLlave Estado { get; set; } = EstadoLlave.ACTIVA;
 
     [Column("fecha_carga")]
     public DateTime FechaCarga { get; set; } = DateTime.UtcNow;
@@ -71,9 +71,14 @@ public class LlaveCriptografica
     
     [NotMapped]
     public DateTime FechaActualizacion { get => UltimaActualizacionContrasena ?? FechaCarga; set => UltimaActualizacionContrasena = value; }
-    
+
     [NotMapped]
-    public bool Activa { get => Estado == "ACTIVA"; set => Estado = value ? "ACTIVA" : "INACTIVA"; }
+    public bool Activa
+    {
+        get => Estado == EstadoLlave.ACTIVA;
+        set => Estado = value ? EstadoLlave.ACTIVA : EstadoLlave.EXPIRADA;
+    }
 }
+
 
 
