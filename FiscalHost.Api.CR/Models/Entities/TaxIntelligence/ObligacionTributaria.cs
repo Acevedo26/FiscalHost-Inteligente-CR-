@@ -28,6 +28,8 @@ public class ObligacionTributaria
 
     [Column("calculo_id")]
     public Guid? CalculoId { get; set; }
+    
+    [ForeignKey(nameof(CalculoId))]
     public CalculoFiscal? CalculoFiscal { get; set; }
 
     [Required]

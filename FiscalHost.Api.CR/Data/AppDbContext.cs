@@ -23,6 +23,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<ContenidoEducativo> ContenidosEducativos => Set<ContenidoEducativo>();
     public DbSet<AccesoContador> AccesosContadores => Set<AccesoContador>();
     public DbSet<PeriodoFiscal> PeriodosFiscales => Set<PeriodoFiscal>();
+    public DbSet<ConfiguracionTributaria> ConfiguracionesTributarias => Set<ConfiguracionTributaria>();
 
     // DbSets for restored modules
     public DbSet<AuditoriaConfiguracion> AuditoriasConfiguracion => Set<AuditoriaConfiguracion>();
@@ -86,6 +87,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.Entity<PeriodoFiscal>().ToTable("periodo_fiscal");
         modelBuilder.Entity<SimulacionFiscal>().ToTable("simulacion_fiscal");
         modelBuilder.Entity<Exportacion>().ToTable("exportacion");
+        modelBuilder.Entity<ConfiguracionTributaria>().ToTable("configuracion_tributaria");
 
         // Communication
         modelBuilder.Entity<Alerta>().ToTable("alerta");

@@ -1,5 +1,6 @@
+using FiscalHost.Api.CR.Models.DTOs;
 using FiscalHost.Api.CR.Models.DTOs.Operations.Requests;
-using FiscalHost.Api.CR.Models.Entities.Operations;
+using FiscalHost.Api.CR.Models.Entities.Operation
 using FiscalHost.Api.CR.Repositories;
 using FiscalHost.Api.CR.Services;
 using NSubstitute;
@@ -19,7 +20,7 @@ public class OperacionManualServiceTests
 
     public OperacionManualServiceTests()
     {
-        _sut = new OperacionManualService(_repository, _blobStorageService, _ocrService);
+        _sut = new OperacionManualService(_repository, Substitute.For<IBlobStorageService>(), Substitute.For<IOcrService>());
     }
 
     [Fact]
@@ -109,9 +110,7 @@ public class OperacionManualServiceTests
             Proveedor = "Proveedor",
             NumeroFactura = "FAC001",
             FechaEmision = DateOnly.FromDateTime(DateTime.UtcNow),
-            MontoTotal = 5000,
-            TipoGasto = "General",
-            Moneda = FiscalHost.Api.CR.Models.Enums.Operations.TipoMoneda.CRC
+            MontoTotal = 5000
         };
 
         var (success, error) =
@@ -122,6 +121,6 @@ public class OperacionManualServiceTests
 
         await _repository.Received(1)
             .AddGastoAsync(
-                Arg.Any<Gasto>());
+                Arg.Any<FiscalHost.Api.CR.Models.Entities.Operations.Gasto>());
     }
 }
