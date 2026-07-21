@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using FiscalHost.Api.CR.Models.DTOs.Operations.Requests;
 using FiscalHost.Api.CR.Models.Entities.Audit;
 using FiscalHost.Api.CR.Models.Entities.Operations;
+using FiscalHost.Api.CR.Models.Enums.Audit;
 using FiscalHost.Api.CR.Models.Enums.Operations;
 using FiscalHost.Api.CR.Repositories;
 
@@ -43,10 +44,9 @@ public class OperacionManualService(
         await repository.AddReservaAsync(reserva);
         await repository.AddAuditoriaAsync(new AuditoriaOperacion
         {
-            Entidad = "ReservaDirecta",
-            Usuario = request.AnfitrionId.ToString(),
-            Accion = "CREACION",
-            Descripcion = "Reserva directa registrada."
+            Operacion = OperacionAuditoria.INSERT,
+            TablaAfectada = "reserva_directa",
+            NewValues = JsonSerializer.Serialize(reserva)
         });
         await repository.SaveChangesAsync();
         return (true, null);
@@ -81,10 +81,10 @@ public class OperacionManualService(
         await repository.AddGastoAsync(gasto);
         await repository.AddAuditoriaAsync(new AuditoriaOperacion
         {
-            Entidad = "Gasto",
-            Usuario = request.UsuarioId.ToString(),
-            Accion = "CREACION",
-            Descripcion = "Gasto registrado."
+            UsuarioId = request.UsuarioId,
+            Operacion = OperacionAuditoria.INSERT,
+            TablaAfectada = "gasto",
+            NewValues = JsonSerializer.Serialize(new { gasto.Proveedor, gasto.NumeroFactura, gasto.MontoTotal })
         });
         await repository.SaveChangesAsync();
         return (true, null);
@@ -102,16 +102,20 @@ public class OperacionManualService(
 
         try
         {
-            // 1. Almacenamiento Seguro (AES-256 manejado por Azure Blob Storage)
-            using var stream = request.Comprobante.OpenReadStream();
-            string blobUrl = await blobStorageService.UploadAsync(
-                stream, 
-                request.Comprobante.FileName, 
+            // 1. Copiar a MemoryStream para poder reutilizarlo en OCR
+            using var ms = new MemoryStream();
+            await request.Comprobante.CopyToAsync(ms);
+
+            // 2. Almacenamiento local en disco
+            ms.Position = 0;
+            string fileUrl = await blobStorageService.UploadAsync(
+                ms,
+                request.Comprobante.FileName,
                 request.Comprobante.ContentType);
 
-            // 2. Extracción de Metadatos mediante OCR
-            stream.Position = 0; // Reiniciar stream para lectura del OCR
-            var ocrResult = await ocrService.ExtractMetadataAsync(stream, request.Comprobante.ContentType);
+            // 3. Extracción de Metadatos mediante OCR
+            ms.Position = 0;
+            var ocrResult = await ocrService.ExtractMetadataAsync(ms, request.Comprobante.ContentType);
 
             // 3. Validación de Duplicados
             if (ocrResult.Exitoso && !string.IsNullOrEmpty(ocrResult.Proveedor) && !string.IsNullOrEmpty(ocrResult.NumeroFactura))
@@ -127,6 +131,17 @@ public class OperacionManualService(
             // Un gasto es "Crédito Fiscal Válido" automáticamente si el OCR fue exitoso y encontró datos mínimos.
             bool esCreditoValido = ocrResult.Exitoso;
 
+            if (!ocrResult.Exitoso || !ocrResult.MontoTotal.HasValue)
+            {
+                return (false, JsonSerializer.Serialize(new
+                {
+                    mensaje = "El OCR no pudo extraer los datos del comprobante. Complete los campos manualmente.",
+                    exitoOcr = false,
+                    evidenciaUrl = fileUrl,
+                    datosExtraidos = ocrResult
+                }));
+            }
+
             var gasto = new Gasto
             {
                 UsuarioId = request.UsuarioId,
@@ -134,8 +149,8 @@ public class OperacionManualService(
                 Proveedor = ocrResult.Proveedor ?? "PENDIENTE",
                 NumeroFactura = ocrResult.NumeroFactura ?? "PENDIENTE",
                 FechaEmision = ocrResult.FechaEmision ?? DateOnly.FromDateTime(DateTime.UtcNow),
-                MontoTotal = ocrResult.MontoTotal ?? 0,
-                EvidenciaUrl = blobUrl,
+                MontoTotal = ocrResult.MontoTotal!.Value,
+                EvidenciaUrl = fileUrl,
                 EvidenciaNombreArchivo = request.Comprobante.FileName,
                 EvidenciaTipoMime = request.Comprobante.ContentType,
                 EvidenciaTamanioBytes = request.Comprobante.Length,
@@ -154,12 +169,10 @@ public class OperacionManualService(
             // Registrar Auditoría Inicial
             await repository.AddAuditoriaAsync(new AuditoriaOperacion
             {
-                Entidad = "Gasto",
-                Usuario = request.UsuarioId.ToString(),
-                Accion = "CREACION",
-                Descripcion = ocrResult.Exitoso 
-                    ? "Gasto subido y procesado exitosamente por OCR."
-                    : "Gasto subido con Fallo de OCR. Se requiere revisión manual.",
+                UsuarioId = request.UsuarioId,
+                Operacion = OperacionAuditoria.INSERT,
+                TablaAfectada = "gasto",
+                NewValues = JsonSerializer.Serialize(new { gasto.Proveedor, gasto.NumeroFactura, gasto.EstadoOcr })
             });
 
             await repository.SaveChangesAsync();
@@ -211,17 +224,16 @@ public class OperacionManualService(
 
         await repository.UpdateGastoAsync(gasto);
 
-        // 2. Registro Obligatorio en la Bitácora con Justificación
         await repository.AddAuditoriaAsync(new AuditoriaOperacion
         {
-            Entidad = "Gasto",
-            EntidadId = gasto.GastoId.GetHashCode(),
-            Usuario = gasto.UsuarioId.ToString(),
-            Accion = "UPDATE",
-            Descripcion = "Modificación de gasto validado.",
-            ValorAnterior = valorAnterior,
-            ValorNuevo = valorNuevo,
-            Justificacion = request.Justificacion // <- Crucial para auditoría
+            UsuarioId = gasto.UsuarioId,
+            Operacion = OperacionAuditoria.UPDATE,
+            TablaAfectada = "gasto",
+            RegistroId = gasto.GastoId,
+            OldValues = valorAnterior,
+            NewValues = valorNuevo,
+            CamposModificados = ["proveedor", "numero_factura", "fecha_emision", "monto_total", "monto_iva_soportado", "monto_neto", "moneda", "tipo_gasto", "es_deducible_renta", "descripcion"],
+            Justificacion = request.Justificacion
         });
 
         await repository.SaveChangesAsync();
@@ -249,17 +261,14 @@ public class OperacionManualService(
 
         await repository.DeleteGastoAsync(gasto);
 
-        // 2. Registro Obligatorio en la Bitácora
         await repository.AddAuditoriaAsync(new AuditoriaOperacion
         {
-            Entidad = "Gasto",
-            EntidadId = gasto.GastoId.GetHashCode(),
-            Usuario = gasto.UsuarioId.ToString(),
-            Accion = "DELETE",
-            Descripcion = "Eliminación de gasto validado.",
-            ValorAnterior = valorAnterior,
-            ValorNuevo = "null",
-            Justificacion = request.Justificacion // <- Crucial para auditoría
+            UsuarioId = gasto.UsuarioId,
+            Operacion = OperacionAuditoria.DELETE,
+            TablaAfectada = "gasto",
+            RegistroId = gasto.GastoId,
+            OldValues = valorAnterior,
+            Justificacion = request.Justificacion
         });
 
         await repository.SaveChangesAsync();

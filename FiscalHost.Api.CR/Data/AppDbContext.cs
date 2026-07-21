@@ -23,6 +23,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<ContenidoEducativo> ContenidosEducativos => Set<ContenidoEducativo>();
     public DbSet<AccesoContador> AccesosContadores => Set<AccesoContador>();
     public DbSet<PeriodoFiscal> PeriodosFiscales => Set<PeriodoFiscal>();
+    public DbSet<ConfiguracionTributaria> ConfiguracionesTributarias => Set<ConfiguracionTributaria>();
 
     // DbSets for restored modules
     public DbSet<AuditoriaConfiguracion> AuditoriasConfiguracion => Set<AuditoriaConfiguracion>();
@@ -70,6 +71,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         // Operations
         modelBuilder.Entity<Reserva>().ToTable("reserva");
         modelBuilder.Entity<Gasto>().ToTable("gasto");
+        modelBuilder.Entity<Gasto>()
+            .Property(g => g.MontoNeto)
+            .ValueGeneratedOnAddOrUpdate();
         modelBuilder.Entity<ImportacionMasiva>().ToTable("importacion_masiva");
         modelBuilder.Entity<ReservaDirecta>().ToTable("reserva_directa");
         modelBuilder.Entity<GastoOperativo>().ToTable("gasto_operativo");
@@ -83,6 +87,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.Entity<PeriodoFiscal>().ToTable("periodo_fiscal");
         modelBuilder.Entity<SimulacionFiscal>().ToTable("simulacion_fiscal");
         modelBuilder.Entity<Exportacion>().ToTable("exportacion");
+        modelBuilder.Entity<ConfiguracionTributaria>().ToTable("configuracion_tributaria");
 
         // Communication
         modelBuilder.Entity<Alerta>().ToTable("alerta");
@@ -92,7 +97,26 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.Entity<LlaveCriptografica>().ToTable("llave_criptografica");
         modelBuilder.Entity<AuditoriaConfiguracion>().ToTable("auditoria_configuracion");
         modelBuilder.Entity<AuditoriaLlave>().ToTable("auditoria_llave");
-        modelBuilder.Entity<AuditoriaOperacion>().ToTable("auditoria_operacion");
+        modelBuilder.Entity<AuditoriaOperacion>().ToTable("audit_log");
+        modelBuilder.Entity<AuditoriaOperacion>(e =>
+        {
+            e.HasKey(a => a.AuditId);
+            e.Property(a => a.AuditId).HasColumnName("audit_id");
+            e.Property(a => a.UsuarioId).HasColumnName("usuario_id");
+            e.Property(a => a.CorreoUsuario).HasColumnName("correo_usuario");
+            e.Property(a => a.RolUsuario).HasColumnName("rol_usuario");
+            e.Property(a => a.Operacion).HasColumnName("operacion");
+            e.Property(a => a.TablaAfectada).HasColumnName("tabla_afectada");
+            e.Property(a => a.RegistroId).HasColumnName("registro_id");
+            e.Property(a => a.OldValues).HasColumnName("old_values").HasColumnType("jsonb");
+            e.Property(a => a.NewValues).HasColumnName("new_values").HasColumnType("jsonb");
+            e.Property(a => a.CamposModificados).HasColumnName("campos_modificados");
+            e.Property(a => a.Justificacion).HasColumnName("justificacion");
+            e.Property(a => a.IpOrigen).HasColumnName("ip_origen").HasColumnType("inet");
+            e.Property(a => a.UserAgent).HasColumnName("user_agent");
+            e.Property(a => a.RequestId).HasColumnName("request_id");
+            e.Property(a => a.CreatedAt).HasColumnName("created_at");
+        });
         modelBuilder.Entity<AuditoriaClasificacionIngreso>().ToTable("auditoria_clasificacion_ingreso");
 
         // Índice único en catálogo de actividades
@@ -138,5 +162,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
              .HasForeignKey(a => a.ClasificacionIngresoId);
         });
 
-    }
+        modelBuilder.HasPostgresEnum<EstadoLlave>("estado_llave", "fiscalhost_db");
+
+        // Opcional: configuración explícita por entidad
+        modelBuilder.Entity<LlaveCriptografica>()
+            .Property(e => e.Estado)
+            .HasColumnType("fiscalhost_db.estado_llave");
+}
 }

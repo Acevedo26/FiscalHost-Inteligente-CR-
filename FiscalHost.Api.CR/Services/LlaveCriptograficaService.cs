@@ -44,6 +44,7 @@ public class LlaveCriptograficaService(
                 AnfitrionId = request.AnfitrionId,
                 NombreArchivo = request.Archivo.FileName,
                 ContenidoCifrado = contenidoCifrado,
+                ReferenciaKeyVault = "444-5567",
                 ContrasenaHash = contrasenacifrada
             };
             await repo.AddAsync(existing);

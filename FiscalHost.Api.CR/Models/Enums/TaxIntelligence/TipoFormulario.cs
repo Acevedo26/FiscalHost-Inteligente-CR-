@@ -11,6 +11,10 @@ namespace FiscalHost.Api.CR.Models.Enums.TaxIntelligence;
 
 public enum TipoFormulario
 {
+    [PgName("D104")]
+    D104,
+    [PgName("D125")]
+    D125,
     [PgName("D150")]
     D150,
     [PgName("D116")]
@@ -19,6 +23,9 @@ public enum TipoFormulario
     D176,
 	[PgName("D125")]
 	D125
+    D176,
+    [PgName("D104")]
+    D104
 }
 
 

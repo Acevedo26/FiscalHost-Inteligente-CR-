@@ -55,18 +55,17 @@ public class OcrService : IOcrService
             // 1. Validar el tipo de archivo y convertir PDF a Imagen si es necesario
             if (contentType.Contains("pdf", StringComparison.OrdinalIgnoreCase))
             {
-                // PDFtoImage nos permite obtener las páginas del PDF como imágenes.
-                // Usamos la primera página asumiendo que contiene los datos de la factura
                 var pages = Conversion.ToImages(fileStream).ToList();
-                if (pages.Any())
+                var sb = new System.Text.StringBuilder();
+                foreach (var page in pages)
                 {
-                    using var firstPageMemoryStream = new MemoryStream();
-                    // Guardamos la primera página como imagen en un MemoryStream
-                    using var data = pages.First().Encode(SkiaSharp.SKEncodedImageFormat.Png, 100);
-                    data.SaveTo(firstPageMemoryStream);
-                    firstPageMemoryStream.Position = 0;
-                    extractedText = PerformOcrOnImageStream(firstPageMemoryStream);
+                    using var ms2 = new MemoryStream();
+                    using var data = page.Encode(SkiaSharp.SKEncodedImageFormat.Png, 100);
+                    data.SaveTo(ms2);
+                    ms2.Position = 0;
+                    sb.AppendLine(PerformOcrOnImageStream(ms2));
                 }
+                extractedText = sb.ToString();
             }
             else if (contentType.Contains("image", StringComparison.OrdinalIgnoreCase))
             {
@@ -93,45 +92,49 @@ public class OcrService : IOcrService
                 result.Proveedor = lines[0].Trim();
             }
 
-            // Buscar Número de Factura (ej. Factura N° 12345 o similar)
-            var facturaRegex = new Regex(@"(?:Factura|Consecutivo|N[°º])\s*[:#-]?\s*(\d{5,20})", RegexOptions.IgnoreCase);
+            // Buscar Número de Factura — soporta formato CR: "Consecutivo: 001..." o "Factura N° 12345"
+            // Buscar Número de Factura — el consecutivo aparece después de "Clave:\n\n" en tiquetes CR
+            var facturaRegex = new Regex(
+                @"Consecutivo\s*:[\s\S]*?Clave\s*:[\s\S]*?\n\s*([\d]{10,50})" +
+                @"|(?:Consecutivo|Factura|N[°º])\s*[:#-]?\s*[\r\n\s]*([\d]{10,50})",
+                RegexOptions.IgnoreCase);
             var facturaMatch = facturaRegex.Match(extractedText);
             if (facturaMatch.Success)
-            {
-                result.NumeroFactura = facturaMatch.Groups[1].Value;
-            }
+                result.NumeroFactura = facturaMatch.Groups[1].Success
+                    ? facturaMatch.Groups[1].Value
+                    : facturaMatch.Groups[2].Value;
 
-            // Buscar Fecha (formatos comunes: dd/MM/yyyy, yyyy-MM-dd)
-            var fechaRegex = new Regex(@"\b(\d{2}[/-]\d{2}[/-]\d{4})\b");
+            // Buscar Fecha — soporta dd/MM/yyyy, yyyy-MM-dd y "14 de marzo de 2026"
+            var fechaRegex = new Regex(
+                @"\b(\d{2}[/-]\d{2}[/-]\d{4})|" +
+                @"(\d{1,2}\s+de\s+(?:enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)\s+de\s+\d{4})",
+                RegexOptions.IgnoreCase);
             var fechaMatch = fechaRegex.Match(extractedText);
-            if (fechaMatch.Success && DateTime.TryParse(fechaMatch.Groups[1].Value, out DateTime parsedDate))
+            if (fechaMatch.Success)
             {
-                result.FechaEmision = DateOnly.FromDateTime(parsedDate);
+                var fechaStr = fechaMatch.Value;
+                if (DateTime.TryParse(fechaStr, new System.Globalization.CultureInfo("es-CR"), System.Globalization.DateTimeStyles.None, out DateTime parsedDate))
+                    result.FechaEmision = DateOnly.FromDateTime(parsedDate);
             }
 
-            // Buscar Monto Total (ej. Total: 15000.00)
-            var montoRegex = new Regex(@"(?:Total|Monto Total)\s*[:\$₡]?\s*([\d,]+\.?\d{0,2})", RegexOptions.IgnoreCase);
+            // Buscar Monto Total — prioriza "Total comprobante" (formato tiquete CR), luego otros patrones
+            var montoRegex = new Regex(
+                @"Total\s+comprobante[\s\S]*?([1-9][\d]{0,2}(?:\.[\d]{3})*,[\d]{2})",
+                RegexOptions.IgnoreCase);
             var montoMatch = montoRegex.Match(extractedText);
             if (montoMatch.Success)
             {
-                // Limpiar posibles separadores de miles
-                string cleanMonto = montoMatch.Groups[1].Value.Replace(",", "");
-                if (decimal.TryParse(cleanMonto, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out decimal parsedMonto))
-                {
+                var rawMonto = montoMatch.Groups[1].Value.Replace(".", "").Replace(",", ".");
+                if (decimal.TryParse(rawMonto, System.Globalization.NumberStyles.Any,
+                    System.Globalization.CultureInfo.InvariantCulture, out decimal parsedMonto) && parsedMonto > 0)
                     result.MontoTotal = parsedMonto;
-                }
             }
 
-            // 3. Fallback: Si no se extrajeron correctamente los campos mínimos, se considera fallido
-            // para que advierta al usuario (El usuario ingresa manual)
-            if (string.IsNullOrEmpty(result.Proveedor) || string.IsNullOrEmpty(result.NumeroFactura) || !result.MontoTotal.HasValue || !result.FechaEmision.HasValue)
-            {
-                result.Exitoso = false;
-            }
-            else
-            {
-                result.Exitoso = true;
-            }
+            // Fallback parcial: si falta solo el monto, se retornan los demás datos para completar manualmente
+            result.Exitoso = !string.IsNullOrEmpty(result.NumeroFactura)
+                && result.FechaEmision.HasValue
+                && result.MontoTotal.HasValue
+                && result.MontoTotal > 0;
 
             return result;
         }

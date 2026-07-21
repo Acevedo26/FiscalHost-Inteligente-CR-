@@ -14,6 +14,8 @@ var dataSource = new NpgsqlDataSourceBuilder(
 
 builder.Services.AddDbContext<AppDbContext>(opt => opt.UseNpgsql(dataSource, o => o.MigrationsHistoryTable("__EFMigrationsHistory", "fiscalhost_db")));
 
+builder.Services.Configure<FiscalHost.Api.CR.Models.TaxSettings>(builder.Configuration.GetSection("TaxSettings"));
+
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
@@ -25,10 +27,20 @@ builder.Services.AddScoped<ILlaveCriptograficaService, LlaveCriptograficaService
 builder.Services.AddScoped<INotificacionService, NotificacionService>();
 builder.Services.AddScoped<IOperacionManualRepository, OperacionManualRepository>();
 builder.Services.AddScoped<IOperacionManualService, OperacionManualService>();
-builder.Services.AddScoped<IBlobStorageService, BlobStorageService>();
+builder.Services.AddScoped<IBlobStorageService, LocalStorageService>();
 builder.Services.AddScoped<IOcrService, OcrService>();
 builder.Services.AddScoped<ICalculoRentaCapitalRepository, CalculoRentaCapitalRepository>();
 builder.Services.AddScoped<ICalculoRentaCapitalService, CalculoRentaCapitalService>();
+builder.Services.AddScoped<IObligacionTributariaRepository, ObligacionTributariaRepository>();
+builder.Services.AddScoped<IObligacionTributariaService, ObligacionTributariaService>();
+builder.Services.AddScoped<IGeneradorBorradorRepository, GeneradorBorradorRepository>();
+builder.Services.AddScoped<IGeneradorBorradorService, GeneradorBorradorService>();
+
+builder.Services.AddHostedService<MoraBackgroundService>();
+
+builder.Services.AddScoped<IImportacionMasivaService, ImportacionMasivaService>();
+builder.Services.AddScoped<IImportacionMasivaRepository, ImportacionMasivaRepository>();
+builder.Services.AddScoped<ICalculoIvaService, CalculoIvaService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
