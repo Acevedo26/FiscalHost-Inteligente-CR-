@@ -31,6 +31,8 @@ builder.Services.AddScoped<IBlobStorageService, BlobStorageService>();
 builder.Services.AddScoped<IOcrService, OcrService>();
 builder.Services.AddScoped<IObligacionTributariaRepository, ObligacionTributariaRepository>();
 builder.Services.AddScoped<IObligacionTributariaService, ObligacionTributariaService>();
+builder.Services.AddScoped<IGeneradorBorradorRepository, GeneradorBorradorRepository>();
+builder.Services.AddScoped<IGeneradorBorradorService, GeneradorBorradorService>();
 
 builder.Services.AddHostedService<MoraBackgroundService>();
 
