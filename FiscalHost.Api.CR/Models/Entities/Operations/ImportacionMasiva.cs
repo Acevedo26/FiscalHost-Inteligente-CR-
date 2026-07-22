@@ -1,0 +1,86 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using FiscalHost.Api.CR.Models.Enums;
+
+namespace FiscalHost.Api.CR.Models.Entities.Operations;
+
+// ========================================================================
+// Entidad: Representa una tabla en la base de datos PostgreSQL, la cual se
+// utiliza exclusivamente por Entity Framework para operaciones de lectura
+// y escritura.
+// ========================================================================
+
+
+[Table("importacion_masiva", Schema = "fiscalhost_db")]
+public class ImportacionMasiva
+{
+    [Key]
+    [Required]
+    [Column("importacion_id")]
+    public Guid ImportacionId { get; set; }
+
+    [Required]
+    [Column("usuario_id")]
+    public Guid UsuarioId { get; set; }
+    public Usuario Usuario { get; set; } = null!;
+
+    [Required]
+    [MaxLength(30)]
+    [Column("tipo_importacion")]
+    public string TipoImportacion { get; set; } = string.Empty;
+
+    [Column("plataforma_origen")]
+    public PlataformaOrigen? PlataformaOrigen { get; set; }
+
+    [Required]
+    [MaxLength(500)]
+    [Column("archivo_url")]
+    public string ArchivoUrl { get; set; } = string.Empty;
+
+    [Required]
+    [MaxLength(255)]
+    [Column("nombre_archivo_original")]
+    public string NombreArchivoOriginal { get; set; } = string.Empty;
+
+    [MaxLength(50)]
+    [Column("plantilla_utilizada")]
+    public string? PlantillaUtilizada { get; set; }
+
+    [Column("tamanio_bytes")]
+    public long? TamanioBytes { get; set; }
+
+    [Required]
+    [Column("estado")]
+    public EstadoImportacion Estado { get; set; }
+
+    [Column("total_registros")]
+    public int? TotalRegistros { get; set; }
+
+    [Column("registros_exitosos")]
+    public int? RegistrosExitosos { get; set; }
+
+    [Column("registros_con_error")]
+    public int? RegistrosConError { get; set; }
+
+    [MaxLength(500)]
+    [Column("reporte_errores_url")]
+    public string? ReporteErroresUrl { get; set; }
+
+    [Column("detalle_errores", TypeName = "jsonb")]
+    public string DetalleErrores { get; set; } = "{}";
+
+    [Column("fecha_carga")]
+    public DateTimeOffset FechaCarga { get; set; } = DateTimeOffset.UtcNow;
+
+    [Column("fecha_inicio_procesamiento")]
+    public DateTimeOffset? FechaInicioProcesamiento { get; set; }
+
+    [Column("fecha_fin_procesamiento")]
+    public DateTimeOffset? FechaFinProcesamiento { get; set; }
+
+    public ICollection<Reserva> Reservas { get; set; } = new List<Reserva>();
+}
+
+
