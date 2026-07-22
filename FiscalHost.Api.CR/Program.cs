@@ -42,6 +42,9 @@ builder.Services.AddScoped<IImportacionMasivaService, ImportacionMasivaService>(
 builder.Services.AddScoped<IImportacionMasivaRepository, ImportacionMasivaRepository>();
 builder.Services.AddScoped<ICalculoIvaService, CalculoIvaService>();
 
+builder.Services.AddScoped<ISancionAutoliquidacionRepository, SancionAutoliquidacionRepository>();
+builder.Services.AddScoped<ISancionAutoliquidacionService, SancionAutoliquidacionService>();
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
