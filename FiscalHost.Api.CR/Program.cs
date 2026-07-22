@@ -43,6 +43,8 @@ builder.Services.AddHostedService<MoraBackgroundService>();
 builder.Services.AddScoped<IImportacionMasivaService, ImportacionMasivaService>();
 builder.Services.AddScoped<IImportacionMasivaRepository, ImportacionMasivaRepository>();
 builder.Services.AddScoped<ICalculoIvaService, CalculoIvaService>();
+builder.Services.AddScoped<IReconstruccionBaseImponibleRepository, ReconstruccionBaseImponibleRepository>();
+builder.Services.AddScoped<IReconstruccionBaseImponibleService, ReconstruccionBaseImponibleService>();
 
 builder.Services.AddScoped<ISancionAutoliquidacionRepository, SancionAutoliquidacionRepository>();
 builder.Services.AddScoped<ISancionAutoliquidacionService, SancionAutoliquidacionService>();
