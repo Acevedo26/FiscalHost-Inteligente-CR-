@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using FiscalHost.Api.CR.Models.DTOs.TaxIntelligence;
+using FiscalHost.Api.CR.Models.DTOs.TaxIntelligence.Requests;
 using FiscalHost.Api.CR.Services;
 
 namespace FiscalHost.Api.CR.Controllers;
@@ -18,11 +18,11 @@ public class CalculoFiscalController : ControllerBase
     }
 
     [HttpPost("iva/generar")]
-    public async Task<IActionResult> GenerarCalculoIva([FromQuery] Guid usuarioId, [FromQuery] short anio, [FromQuery] short mes)
+    public async Task<IActionResult> GenerarCalculoIva([FromBody] GenerarCalculoIvaRequest request)
     {
         try
         {
-            var resultado = await _calculoIvaService.CalcularIvaDevengadoAsync(usuarioId, anio, mes);
+            var resultado = await _calculoIvaService.CalcularIvaDevengadoAsync(request.UsuarioId, request.Anio, request.Mes);
             return Ok(resultado);
         }
         catch (InvalidOperationException ex)

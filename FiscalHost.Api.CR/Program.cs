@@ -37,6 +37,7 @@ builder.Services.AddScoped<IGeneradorBorradorRepository, GeneradorBorradorReposi
 builder.Services.AddScoped<IGeneradorBorradorService, GeneradorBorradorService>();
 builder.Services.AddScoped<IExportacionHaciendaRepository, ExportacionHaciendaRepository>();
 builder.Services.AddScoped<IExportacionHaciendaService, ExportacionHaciendaService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 
 builder.Services.AddHostedService<MoraBackgroundService>();
 
