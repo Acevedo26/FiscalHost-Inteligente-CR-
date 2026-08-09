@@ -20,9 +20,18 @@ public class DashboardService : IDashboardService
     {
         var response = new DashboardResponseDto();
 
+        // Npgsql requiere que los DateTimes sean UTC al consultar columnas 'timestamp with time zone'
+        var fechaInicioUtc = fechaInicio.Kind == DateTimeKind.Unspecified 
+            ? DateTime.SpecifyKind(fechaInicio, DateTimeKind.Utc) 
+            : fechaInicio.ToUniversalTime();
+
+        var fechaFinUtc = fechaFin.Kind == DateTimeKind.Unspecified 
+            ? DateTime.SpecifyKind(fechaFin, DateTimeKind.Utc) 
+            : fechaFin.ToUniversalTime();
+
         // 1. Fetch data with LINQ
         var reservas = await _context.Reservas
-            .Where(r => r.UsuarioId == usuarioId && r.FechaInicio >= fechaInicio && r.FechaInicio <= fechaFin && r.Estado != "Cancelada")
+            .Where(r => r.UsuarioId == usuarioId && r.FechaInicio >= fechaInicioUtc && r.FechaInicio <= fechaFinUtc && r.Estado != "Cancelada")
             .ToListAsync();
 
         var gastos = await _context.Gastos
