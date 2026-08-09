@@ -47,6 +47,10 @@ builder.Services.AddScoped<ICalculoIvaService, CalculoIvaService>();
 builder.Services.AddScoped<ISancionAutoliquidacionRepository, SancionAutoliquidacionRepository>();
 builder.Services.AddScoped<ISancionAutoliquidacionService, SancionAutoliquidacionService>();
 
+builder.Services.AddScoped<IAlertaRepository, AlertaRepository>();
+builder.Services.AddScoped<IAlertaService, AlertaService>();
+builder.Services.AddHostedService<AlertaBackgroundService>();
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

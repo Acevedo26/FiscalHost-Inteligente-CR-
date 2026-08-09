@@ -10,7 +10,8 @@ public interface IObligacionTributariaRepository
 {
     Task<ObligacionTributaria?> GetByIdAsync(Guid id);
     Task<IEnumerable<ObligacionTributaria>> GetVencidasPendientesAsync(DateOnly fechaCorte);
-    Task UpdateAsync(ObligacionTributaria obligacion);
+	Task<IEnumerable<ObligacionTributaria>> GetProximasAVencerAsync(DateOnly fechaActual, int diasMaximo);
+	Task UpdateAsync(ObligacionTributaria obligacion);
     Task UpdateRangeAsync(IEnumerable<ObligacionTributaria> obligaciones);
     Task SaveChangesAsync();
 }
