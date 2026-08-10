@@ -2,6 +2,7 @@ using FiscalHost.Api.CR.Models.DTOs;
 using FiscalHost.Api.CR.Models.Entities;
 using FiscalHost.Api.CR.Repositories;
 using FiscalHost.Api.CR.Services;
+using Microsoft.Extensions.Configuration;
 using NSubstitute;
 
 namespace FiscalHost.Tests;
@@ -10,12 +11,14 @@ public class AuthServiceTests
 {
     private readonly IUsuarioRepository _usuarioRepo =
         Substitute.For<IUsuarioRepository>();
+    private readonly IConfiguration _config =
+        Substitute.For<IConfiguration>();
 
     private readonly AuthService _sut;
 
     public AuthServiceTests()
     {
-        _sut = new AuthService(_usuarioRepo);
+        _sut = new AuthService(_usuarioRepo, _config);
     }
 
     // Escenario: Registro exitoso con cédula física

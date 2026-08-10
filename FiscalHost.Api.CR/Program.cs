@@ -56,6 +56,9 @@ builder.Services.AddScoped<IAlertaRepository, AlertaRepository>();
 builder.Services.AddScoped<IAlertaService, AlertaService>();
 builder.Services.AddHostedService<AlertaBackgroundService>();
 
+builder.Services.AddScoped<ISimulacionFiscalRepository, SimulacionFiscalRepository>();
+builder.Services.AddScoped<ISimulacionFiscalService, SimulacionFiscalService>();
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
