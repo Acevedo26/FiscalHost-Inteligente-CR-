@@ -42,20 +42,14 @@ builder.Services.AddScoped<IGeneradorBorradorService, GeneradorBorradorService>(
 builder.Services.AddScoped<IExportacionHaciendaRepository, ExportacionHaciendaRepository>();
 builder.Services.AddScoped<IExportacionHaciendaService, ExportacionHaciendaService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
-
 builder.Services.AddHostedService<MoraBackgroundService>();
-
 builder.Services.AddScoped<IImportacionMasivaService, ImportacionMasivaService>();
 builder.Services.AddScoped<IImportacionMasivaRepository, ImportacionMasivaRepository>();
 builder.Services.AddScoped<ICalculoIvaService, CalculoIvaService>();
-
 builder.Services.AddScoped<ISancionAutoliquidacionRepository, SancionAutoliquidacionRepository>();
-
+builder.Services.AddScoped<ISancionAutoliquidacionService, SancionAutoliquidacionService>();
 builder.Services.AddScoped<IContenidoEducativoRepository, ContenidoEducativoRepository>();
 builder.Services.AddScoped<IContenidoEducativoService, ContenidoEducativoService>();
-
-builder.Services.AddScoped<ISancionAutoliquidacionService, SancionAutoliquidacionService>();
-
 builder.Services.AddScoped<IAlertaRepository, AlertaRepository>();
 builder.Services.AddScoped<IAlertaService, AlertaService>();
 builder.Services.AddHostedService<AlertaBackgroundService>();
