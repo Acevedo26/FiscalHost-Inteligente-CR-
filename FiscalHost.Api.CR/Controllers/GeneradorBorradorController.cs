@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using FiscalHost.Api.CR.Services;
 using FiscalHost.Api.CR.Models.DTOs.TaxIntelligence.Responses;
+using FiscalHost.Api.CR.Models.DTOs.TaxIntelligence.Requests;
 
 namespace FiscalHost.Api.CR.Controllers;
 
@@ -10,12 +11,12 @@ namespace FiscalHost.Api.CR.Controllers;
 [Route("api/borradores")]
 public class GeneradorBorradorController(IGeneradorBorradorService service) : ControllerBase
 {
-    [HttpGet("d104")]
-    public async Task<ActionResult<BorradorD104Dto>> GetBorradorD104([FromQuery] Guid usuarioId, [FromQuery] short anio, [FromQuery] short mes)
+    [HttpPost("d104")]
+    public async Task<ActionResult<BorradorD104Dto>> GetBorradorD104([FromBody] GenerarBorradorD104Request request)
     {
         try
         {
-            var borrador = await service.GenerarD104Async(usuarioId, anio, mes);
+            var borrador = await service.GenerarD104Async(request.UsuarioId, request.Anio, request.Mes);
             return Ok(borrador);
         }
         catch (InvalidOperationException ex)
@@ -28,12 +29,12 @@ public class GeneradorBorradorController(IGeneradorBorradorService service) : Co
         }
     }
 
-    [HttpGet("d125")]
-    public async Task<ActionResult<BorradorD125Dto>> GetBorradorD125([FromQuery] Guid usuarioId, [FromQuery] short anio, [FromQuery] bool regimenUtilidades = false)
+    [HttpPost("d125")]
+    public async Task<ActionResult<BorradorD125Dto>> GetBorradorD125([FromBody] GenerarBorradorD125Request request)
     {
         try
         {
-            var borrador = await service.GenerarD125Async(usuarioId, anio, regimenUtilidades);
+            var borrador = await service.GenerarD125Async(request.UsuarioId, request.Anio, request.RegimenUtilidades);
             return Ok(borrador);
         }
         catch (InvalidOperationException ex)
@@ -46,12 +47,12 @@ public class GeneradorBorradorController(IGeneradorBorradorService service) : Co
         }
     }
 
-    [HttpGet("d176")]
-    public ActionResult<BorradorD176Dto> GetBorradorD176([FromQuery] decimal impuestoPrincipal, [FromQuery] DateOnly fechaVencimientoOriginal)
+    [HttpPost("d176")]
+    public ActionResult<BorradorD176Dto> GetBorradorD176([FromBody] GenerarBorradorD176Request request)
     {
         try
         {
-            var borrador = service.GenerarD176(impuestoPrincipal, fechaVencimientoOriginal, DateOnly.FromDateTime(DateTime.UtcNow));
+            var borrador = service.GenerarD176(request.ImpuestoPrincipal, request.FechaVencimientoOriginal, DateOnly.FromDateTime(DateTime.UtcNow));
             return Ok(borrador);
         }
         catch (Exception ex)

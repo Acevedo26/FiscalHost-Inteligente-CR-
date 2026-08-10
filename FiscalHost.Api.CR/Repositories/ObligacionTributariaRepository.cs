@@ -26,7 +26,20 @@ public class ObligacionTributariaRepository(AppDbContext dbContext) : IObligacio
             .ToListAsync();
     }
 
-    public Task UpdateAsync(ObligacionTributaria obligacion)
+	public async Task<IEnumerable<ObligacionTributaria>> GetProximasAVencerAsync(DateOnly fechaActual, int diasMaximo)
+	{
+		var fechaLimite = fechaActual.AddDays(diasMaximo);
+
+		return await dbContext.ObligacionesTributarias
+			.Include(o => o.Usuario)
+			.Include(o => o.Alertas)
+			.Where(o => o.Estado == EstadoObligacion.VIGENTE
+						&& o.FechaVencimiento >= fechaActual
+						&& o.FechaVencimiento <= fechaLimite)
+			.ToListAsync();
+	}
+
+	public Task UpdateAsync(ObligacionTributaria obligacion)
     {
         dbContext.ObligacionesTributarias.Update(obligacion);
         return Task.CompletedTask;

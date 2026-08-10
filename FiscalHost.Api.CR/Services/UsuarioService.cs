@@ -1,16 +1,33 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using FiscalHost.Api.CR.Repositories;
 
 namespace FiscalHost.Api.CR.Services;
 
 public interface IUsuarioService
 {
-    Task<IEnumerable<UsuarioDto>> ObtenerTodosAsync();
+  Task<IEnumerable<UsuarioDto>> ObtenerTodosAsync();
 	Task<UsuarioDto?> ObtenerPorIdAsync(Guid usuarioId);
 	Task<(bool success, string? error)> MarcarTutorialCompletadoAsync(Guid usuarioId);
+  Task<IEnumerable<UsuarioDto>> ObtenerTodosAsync();
+	Task<PreferenciasNotificacionDto?> ObtenerPreferenciasNotificacionAsync(Guid usuarioId);
+	Task<(bool success, string? error, PreferenciasNotificacionDto? data)> ActualizarPreferenciasNotificacionAsync(
+		Guid usuarioId, ActualizarPreferenciasNotificacionRequest request);
 }
 
 public class UsuarioService(IUsuarioRepository usuarioRepo) : IUsuarioService
 {
+	private static readonly JsonSerializerOptions PreferenciasJsonOptions = new()
+	{
+		Converters = { new JsonStringEnumConverter() },
+		PropertyNameCaseInsensitive = true,
+	};
+
+	private class PreferenciasNotificacionJson
+	{
+		public CanalNotificacion? CanalAlertas { get; set; }
+	}
+	
     public async Task<IEnumerable<UsuarioDto>> ObtenerTodosAsync()
     {
         var usuarios = await usuarioRepo.GetAllAsync();
@@ -80,3 +97,5 @@ public class UsuarioService(IUsuarioRepository usuarioRepo) : IUsuarioService
 		};
 	}
 }
+
+

@@ -19,6 +19,11 @@ public class UsuarioController(IUsuarioService service) : ControllerBase
 	{
 		var usuario = await service.ObtenerPorIdAsync(id);
 		if (usuario == null)
+	[HttpGet("{id:guid}/preferencias-notificacion")]
+	public async Task<IActionResult> ObtenerPreferenciasNotificacion(Guid id)
+	{
+		var preferencias = await service.ObtenerPreferenciasNotificacionAsync(id);
+		if (preferencias == null)
 		{
 			return NotFound(new { error = "Usuario no encontrado." });
 		}
@@ -30,11 +35,20 @@ public class UsuarioController(IUsuarioService service) : ControllerBase
 	public async Task<IActionResult> CompletarTutorial(Guid id)
 	{
 		var (success, error) = await service.MarcarTutorialCompletadoAsync(id);
+		return Ok(preferencias);
+	}
+
+	[HttpPut("{id:guid}/preferencias-notificacion")]
+	public async Task<IActionResult> ActualizarPreferenciasNotificacion(
+		Guid id, [FromBody] ActualizarPreferenciasNotificacionRequest request)
+	{
+		var (success, error, data) = await service.ActualizarPreferenciasNotificacionAsync(id, request);
 		if (!success)
 		{
 			return NotFound(new { error });
 		}
 
 		return Ok(new { mensaje = "Tutorial marcado como completado." });
+		return Ok(data);
 	}
 }

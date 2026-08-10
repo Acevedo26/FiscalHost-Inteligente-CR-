@@ -2,8 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using FiscalHost.Api.CR.Services;
-using FiscalHost.Api.CR.Repositories;
-
+using FiscalHost.Api.CR.Models.DTOs.TaxIntelligence.Requests;
 namespace FiscalHost.Api.CR.Controllers;
 
 [ApiController]
@@ -27,11 +26,11 @@ public class ObligacionesTributariasController(
     }
 
     [HttpPost("recalcular-mora")]
-    public async Task<IActionResult> RecalcularMoraManual([FromQuery] DateTime? fechaFija = null)
+    public async Task<IActionResult> RecalcularMoraManual([FromBody] RecalcularMoraRequest? request = null)
     {
         // Solo para propósitos administrativos o pruebas manuales.
         // Permite simular el paso del tiempo enviando una fecha específica, o usar la fecha actual.
-        var fechaCorte = fechaFija.HasValue ? DateOnly.FromDateTime(fechaFija.Value) : DateOnly.FromDateTime(DateTime.UtcNow);
+        var fechaCorte = request?.FechaFija.HasValue == true ? DateOnly.FromDateTime(request.FechaFija.Value) : DateOnly.FromDateTime(DateTime.UtcNow);
         
         await obligacionService.ProcesarCargosMoratoriosMasivosAsync(fechaCorte);
         

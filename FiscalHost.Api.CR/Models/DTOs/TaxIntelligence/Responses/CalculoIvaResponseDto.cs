@@ -1,6 +1,6 @@
 using System;
 
-namespace FiscalHost.Api.CR.Models.DTOs.TaxIntelligence;
+namespace FiscalHost.Api.CR.Models.DTOs.TaxIntelligence.Responses;
 
 public class CalculoIvaResponseDto
 {
