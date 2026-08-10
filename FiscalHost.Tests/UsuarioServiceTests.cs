@@ -1,4 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using FiscalHost.Api.CR.Models.Entities.Identity;
 using System.Threading.Tasks;
 using FiscalHost.Api.CR.Models.Entities.Identity;
 using FiscalHost.Api.CR.Models.DTOs.Identity.Requests;
@@ -20,6 +24,21 @@ public class UsuarioServiceTests
 		_sut = new UsuarioService(_repository);
 	}
 
+	[Fact]
+	public async Task ObtenerTodos_RetornaTodosLosUsuariosMapeados()
+	{
+		var usuario = BuildUsuario();
+		_repository.GetAllAsync().Returns(new List<Usuario> { usuario });
+
+		var resultado = await _sut.ObtenerTodosAsync();
+
+		var dto = Assert.Single(resultado);
+		Assert.Equal(usuario.UsuarioId, dto.UsuarioId);
+		Assert.Equal(usuario.NombreCompleto, dto.NombreCompleto);
+	}
+
+	[Fact]
+	public async Task ObtenerPorId_UsuarioExistente_RetornaDto()
 	[Theory]
 	[InlineData("{}", CanalNotificacion.AMBOS)]
 	[InlineData("", CanalNotificacion.AMBOS)]
@@ -39,6 +58,35 @@ public class UsuarioServiceTests
 		var usuario = BuildUsuario();
 		_repository.GetByIdAsync(usuario.UsuarioId).Returns(usuario);
 
+		var resultado = await _sut.ObtenerPorIdAsync(usuario.UsuarioId);
+
+		Assert.NotNull(resultado);
+		Assert.Equal(usuario.UsuarioId, resultado!.UsuarioId);
+		Assert.Equal(usuario.EsUsuarioNuevo, resultado.EsUsuarioNuevo);
+	}
+
+	[Fact]
+	public async Task ObtenerPorId_UsuarioInexistente_RetornaNull()
+	{
+		_repository.GetByIdAsync(Arg.Any<Guid>()).Returns((Usuario?)null);
+
+		var resultado = await _sut.ObtenerPorIdAsync(Guid.NewGuid());
+
+		Assert.Null(resultado);
+	}
+
+	[Fact]
+	public async Task CompletarTutorial_UsuarioNuevo_MarcaComoNoNuevo()
+	{
+		var usuario = BuildUsuario();
+		usuario.EsUsuarioNuevo = true;
+		_repository.GetByIdAsync(usuario.UsuarioId).Returns(usuario);
+
+		var (success, error) = await _sut.MarcarTutorialCompletadoAsync(usuario.UsuarioId);
+
+		Assert.True(success);
+		Assert.Null(error);
+		Assert.False(usuario.EsUsuarioNuevo);
 		var (success, error, data) = await _sut.ActualizarPreferenciasNotificacionAsync(
 			usuario.UsuarioId, new ActualizarPreferenciasNotificacionRequest { CanalAlertas = CanalNotificacion.CORREO });
 
@@ -50,6 +98,27 @@ public class UsuarioServiceTests
 	}
 
 	[Fact]
+	public async Task CompletarTutorial_UsuarioYaNoEsNuevo_NoGuardaCambiosInnecesarios()
+	{
+		var usuario = BuildUsuario();
+		usuario.EsUsuarioNuevo = false;
+		_repository.GetByIdAsync(usuario.UsuarioId).Returns(usuario);
+
+		var (success, _) = await _sut.MarcarTutorialCompletadoAsync(usuario.UsuarioId);
+
+		Assert.True(success);
+		await _repository.DidNotReceive().SaveChangesAsync();
+	}
+
+	[Fact]
+	public async Task CompletarTutorial_UsuarioInexistente_RetornaError()
+	{
+		_repository.GetByIdAsync(Arg.Any<Guid>()).Returns((Usuario?)null);
+
+		var (success, error) = await _sut.MarcarTutorialCompletadoAsync(Guid.NewGuid());
+
+		Assert.False(success);
+		Assert.NotNull(error);
 	public async Task ActualizarPreferencias_UsuarioInexistente_RetornaError()
 	{
 		_repository.GetByIdAsync(Arg.Any<Guid>()).Returns((Usuario?)null);
@@ -85,6 +154,7 @@ public class UsuarioServiceTests
 		ContrasenaHash = "hash",
 		Estado = EstadoUsuario.ACTIVO,
 		RolPrincipal = RolUsuario.ANFITRION,
+		EsUsuarioNuevo = true,
 		PreferenciasNotificacion = "{}",
 	};
 }

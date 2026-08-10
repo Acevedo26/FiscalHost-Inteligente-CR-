@@ -50,6 +50,10 @@ builder.Services.AddScoped<IImportacionMasivaRepository, ImportacionMasivaReposi
 builder.Services.AddScoped<ICalculoIvaService, CalculoIvaService>();
 
 builder.Services.AddScoped<ISancionAutoliquidacionRepository, SancionAutoliquidacionRepository>();
+
+builder.Services.AddScoped<IContenidoEducativoRepository, ContenidoEducativoRepository>();
+builder.Services.AddScoped<IContenidoEducativoService, ContenidoEducativoService>();
+
 builder.Services.AddScoped<ISancionAutoliquidacionService, SancionAutoliquidacionService>();
 
 builder.Services.AddScoped<IAlertaRepository, AlertaRepository>();
