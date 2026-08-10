@@ -8,9 +8,11 @@ public interface IUsuarioRepository
 {
     Task<Usuario?> GetByCorreoAsync(string correo);
     Task<Usuario?> GetByIdentificacionAsync(string identificacion);
-    Task<IEnumerable<Usuario>> GetAllAsync();
+	Task<Usuario?> GetByIdAsync(Guid usuarioId);
+	Task<IEnumerable<Usuario>> GetAllAsync();
     Task AddAsync(Usuario usuario);
-    Task SaveChangesAsync();
+	Task UpdateAsync(Usuario usuario);
+	Task SaveChangesAsync();
 }
 
 public class UsuarioRepository(AppDbContext db) : IUsuarioRepository
@@ -23,7 +25,10 @@ public class UsuarioRepository(AppDbContext db) : IUsuarioRepository
         db.Usuarios.FirstOrDefaultAsync(u =>
             u.NumeroIdentificacion == identificacion);
 
-    public async Task<IEnumerable<Usuario>> GetAllAsync() =>
+	public Task<Usuario?> GetByIdAsync(Guid usuarioId) =>
+	db.Usuarios.FirstOrDefaultAsync(u => u.UsuarioId == usuarioId);
+
+	public async Task<IEnumerable<Usuario>> GetAllAsync() =>
         await db.Usuarios.ToListAsync();
 
     public async Task AddAsync(Usuario usuario)
@@ -32,5 +37,11 @@ public class UsuarioRepository(AppDbContext db) : IUsuarioRepository
         await db.Usuarios.AddAsync(usuario);
     }
 
-    public Task SaveChangesAsync() => db.SaveChangesAsync();
+	public Task UpdateAsync(Usuario usuario)
+	{
+		db.Usuarios.Update(usuario);
+		return Task.CompletedTask;
+	}
+
+	public Task SaveChangesAsync() => db.SaveChangesAsync();
 }
