@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using FiscalHost.Api.CR.Data;
-using FiscalHost.Api.CR.Models.DTOs.TaxIntelligence;
 using FiscalHost.Api.CR.Models.Entities.TaxIntelligence;
 using FiscalHost.Api.CR.Models.Enums.TaxIntelligence;
 using System.Text.Json;

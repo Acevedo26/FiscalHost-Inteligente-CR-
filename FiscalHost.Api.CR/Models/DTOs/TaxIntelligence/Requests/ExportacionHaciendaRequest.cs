@@ -10,6 +10,7 @@ public class ExportacionHaciendaRequest
     public Guid? CalculoId { get; set; }
 
     [Required]
+    [Range(2019, 2100, ErrorMessage = "El año fiscal debe ser mayor a 2019.")]
     public short AnioFiscal { get; set; }
 
     public short? Mes { get; set; }
