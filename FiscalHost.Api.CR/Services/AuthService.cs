@@ -1,5 +1,11 @@
 using FiscalHost.Api.CR.Repositories;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace FiscalHost.Api.CR.Services;
 
@@ -7,9 +13,12 @@ public interface IAuthService
 {
     Task<(bool success, string? error, RegistroUsuarioResponse? data)>
         RegistrarUsuarioAsync(RegistroUsuarioRequest request);
+
+    Task<(bool success, string? error, LoginResponse? data)>
+        LoginAsync(LoginRequest request);
 }
 
-public class AuthService(IUsuarioRepository usuarioRepo) : IAuthService
+public class AuthService(IUsuarioRepository usuarioRepo, IConfiguration config) : IAuthService
 {
     public async Task<(bool success, string? error, RegistroUsuarioResponse? data)>
         RegistrarUsuarioAsync(RegistroUsuarioRequest request)
@@ -68,6 +77,35 @@ public class AuthService(IUsuarioRepository usuarioRepo) : IAuthService
             });
     }
 
+    public async Task<(bool success, string? error, LoginResponse? data)>
+        LoginAsync(LoginRequest request)
+    {
+        var usuario = await usuarioRepo.GetByCorreoAsync(request.Correo);
+        if (usuario is null || !BCrypt.Net.BCrypt.Verify(request.Contrasena, usuario.ContrasenaHash))
+        {
+            return (false, "Credenciales inválidas.", null);
+        }
+
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var key = Encoding.UTF8.GetBytes(config["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key is not set"));
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = new ClaimsIdentity(new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, usuario.UsuarioId.ToString()),
+                new Claim(ClaimTypes.Email, usuario.CorreoElectronico)
+            }),
+            Expires = DateTime.UtcNow.AddMinutes(double.Parse(config["Jwt:ExpireMinutes"] ?? "15")),
+            Issuer = config["Jwt:Issuer"],
+            Audience = config["Jwt:Audience"],
+            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+        };
+        var token = tokenHandler.CreateToken(tokenDescriptor);
+        var jwt = tokenHandler.WriteToken(token);
+
+        return (true, null, new LoginResponse { Token = jwt, Mensaje = "Inicio de sesión exitoso." });
+    }
+
     private static bool ValidarContrasena(string password)
     {
         return password.Length >= 8
@@ -96,5 +134,4 @@ public class AuthService(IUsuarioRepository usuarioRepo) : IAuthService
             _ => false
         };
     }
-
 }
