@@ -52,6 +52,8 @@ builder.Services.AddScoped<IContenidoEducativoRepository, ContenidoEducativoRepo
 builder.Services.AddScoped<IContenidoEducativoService, ContenidoEducativoService>();
 builder.Services.AddScoped<IAlertaRepository, AlertaRepository>();
 builder.Services.AddScoped<IAlertaService, AlertaService>();
+builder.Services.AddScoped<IAuditoriaInalterableRepository, AuditoriaInalterableRepository>();
+builder.Services.AddScoped<IAuditoriaInalterableService, AuditoriaInalterableService>();
 builder.Services.AddScoped<IAccesoContadorRepository, AccesoContadorRepository>();
 builder.Services.AddScoped<IAccesoContadorService, AccesoContadorService>();
 builder.Services.AddHostedService<AlertaBackgroundService>();
