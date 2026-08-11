@@ -52,6 +52,8 @@ builder.Services.AddScoped<IContenidoEducativoRepository, ContenidoEducativoRepo
 builder.Services.AddScoped<IContenidoEducativoService, ContenidoEducativoService>();
 builder.Services.AddScoped<IAlertaRepository, AlertaRepository>();
 builder.Services.AddScoped<IAlertaService, AlertaService>();
+builder.Services.AddScoped<IAccesoContadorRepository, AccesoContadorRepository>();
+builder.Services.AddScoped<IAccesoContadorService, AccesoContadorService>();
 builder.Services.AddHostedService<AlertaBackgroundService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
