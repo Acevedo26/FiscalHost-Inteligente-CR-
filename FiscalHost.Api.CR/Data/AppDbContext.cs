@@ -168,5 +168,28 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.Entity<LlaveCriptografica>()
             .Property(e => e.Estado)
             .HasColumnType("fiscalhost_db.estado_llave");
-}
+
+    }
+
+    public override int SaveChanges()
+    {
+        ValidarAuditoriaInalterable();
+        return base.SaveChanges();
+    }
+
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        ValidarAuditoriaInalterable();
+        return base.SaveChangesAsync(cancellationToken);
+    }
+
+    private void ValidarAuditoriaInalterable()
+    {
+        var intentoAlteracion = ChangeTracker
+            .Entries<AuditoriaOperacion>()
+            .Any(e => e.State is EntityState.Modified or EntityState.Deleted);
+
+        if (intentoAlteracion)
+            throw new InvalidOperationException("Los registros de auditoria son inalterables y no pueden modificarse ni eliminarse.");
+    }
 }

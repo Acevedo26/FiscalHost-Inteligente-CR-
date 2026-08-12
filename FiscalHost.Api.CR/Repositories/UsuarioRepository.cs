@@ -26,7 +26,7 @@ public class UsuarioRepository(AppDbContext db) : IUsuarioRepository
             u.NumeroIdentificacion == identificacion);
 
 	public Task<Usuario?> GetByIdAsync(Guid usuarioId) =>
-	db.Usuarios.FirstOrDefaultAsync(u => u.UsuarioId == usuarioId);
+		db.Usuarios.FirstOrDefaultAsync(u => u.UsuarioId == usuarioId);
 
 	public async Task<IEnumerable<Usuario>> GetAllAsync() =>
         await db.Usuarios.ToListAsync();

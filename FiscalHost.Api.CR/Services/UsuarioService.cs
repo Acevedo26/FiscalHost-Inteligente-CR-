@@ -1,12 +1,22 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading.Tasks;
+using FiscalHost.Api.CR.Models.DTOs;
+using FiscalHost.Api.CR.Models.DTOs.Identity.Requests;
+using FiscalHost.Api.CR.Models.DTOs.Identity.Responses;
+using FiscalHost.Api.CR.Models.Enums.Communication;
 using FiscalHost.Api.CR.Repositories;
 
 namespace FiscalHost.Api.CR.Services;
 
 public interface IUsuarioService
 {
-    Task<IEnumerable<UsuarioDto>> ObtenerTodosAsync();
+	Task<IEnumerable<UsuarioDto>> ObtenerTodosAsync();
+	Task<UsuarioDto?> ObtenerPorIdAsync(Guid usuarioId);
+	Task<(bool success, string? error)> MarcarTutorialCompletadoAsync(Guid usuarioId);
 	Task<PreferenciasNotificacionDto?> ObtenerPreferenciasNotificacionAsync(Guid usuarioId);
 	Task<(bool success, string? error, PreferenciasNotificacionDto? data)> ActualizarPreferenciasNotificacionAsync(
 		Guid usuarioId, ActualizarPreferenciasNotificacionRequest request);
@@ -23,6 +33,22 @@ public class UsuarioService(IUsuarioRepository usuarioRepo) : IUsuarioService
 	private class PreferenciasNotificacionJson
 	{
 		public CanalNotificacion? CanalAlertas { get; set; }
+	}
+
+	public static CanalNotificacion ResolverCanalPreferido(string jsonPrefs)
+	{
+		if (string.IsNullOrWhiteSpace(jsonPrefs))
+			return CanalNotificacion.AMBOS;
+
+		try
+		{
+			var prefs = JsonSerializer.Deserialize<PreferenciasNotificacionJson>(jsonPrefs, PreferenciasJsonOptions);
+			return prefs?.CanalAlertas ?? CanalNotificacion.AMBOS;
+		}
+		catch
+		{
+			return CanalNotificacion.AMBOS;
+		}
 	}
 	
     public async Task<IEnumerable<UsuarioDto>> ObtenerTodosAsync()
@@ -46,7 +72,25 @@ public class UsuarioService(IUsuarioRepository usuarioRepo) : IUsuarioService
         });
     }
 
-	public async Task<PreferenciasNotificacionDto?> ObtenerPreferenciasNotificacionAsync(Guid usuarioId)
+	public async Task<(bool success, string? error)> MarcarTutorialCompletadoAsync(Guid usuarioId)
+	{
+		var usuario = await usuarioRepo.GetByIdAsync(usuarioId);
+		if (usuario == null)
+		{
+			return (false, "Usuario no encontrado.");
+		}
+
+		if (usuario.EsUsuarioNuevo)
+		{
+			usuario.EsUsuarioNuevo = false;
+			await usuarioRepo.UpdateAsync(usuario);
+			await usuarioRepo.SaveChangesAsync();
+		}
+
+		return (true, null);
+	}
+
+	public async Task<UsuarioDto?> ObtenerPorIdAsync(Guid usuarioId)
 	{
 		var usuario = await usuarioRepo.GetByIdAsync(usuarioId);
 		if (usuario == null)
@@ -54,9 +98,36 @@ public class UsuarioService(IUsuarioRepository usuarioRepo) : IUsuarioService
 			return null;
 		}
 
+		return new UsuarioDto
+		{
+			UsuarioId = usuario.UsuarioId,
+			TipoIdentificacion = usuario.TipoIdentificacion,
+			NumeroIdentificacion = usuario.NumeroIdentificacion,
+			NombreCompleto = usuario.NombreCompleto,
+			RazonSocial = usuario.RazonSocial,
+			CorreoElectronico = usuario.CorreoElectronico,
+			Estado = usuario.Estado,
+			RolPrincipal = usuario.RolPrincipal,
+			EsUsuarioNuevo = usuario.EsUsuarioNuevo,
+			CorreoVerificado = usuario.CorreoVerificado,
+			FechaActivacion = usuario.FechaActivacion,
+			UltimoAcceso = usuario.UltimoAcceso
+		};
+	}
+
+	public async Task<PreferenciasNotificacionDto?> ObtenerPreferenciasNotificacionAsync(Guid usuarioId)
+	{
+		var usuario = await usuarioRepo.GetByIdAsync(usuarioId);
+		if (usuario == null) return null;
+
+		var prefs = string.IsNullOrEmpty(usuario.PreferenciasNotificacion)
+			? new PreferenciasNotificacionJson()
+			: JsonSerializer.Deserialize<PreferenciasNotificacionJson>(usuario.PreferenciasNotificacion, PreferenciasJsonOptions) 
+				?? new PreferenciasNotificacionJson();
+
 		return new PreferenciasNotificacionDto
 		{
-			CanalAlertas = ResolverCanalPreferido(usuario.PreferenciasNotificacion)
+			CanalAlertas = prefs.CanalAlertas ?? CanalNotificacion.AMBOS
 		};
 	}
 
@@ -64,40 +135,19 @@ public class UsuarioService(IUsuarioRepository usuarioRepo) : IUsuarioService
 		Guid usuarioId, ActualizarPreferenciasNotificacionRequest request)
 	{
 		var usuario = await usuarioRepo.GetByIdAsync(usuarioId);
-		if (usuario == null)
-		{
-			return (false, "Usuario no encontrado.", null);
-		}
+		if (usuario == null) return (false, "Usuario no encontrado.", null);
 
-		var preferencias = new PreferenciasNotificacionJson { CanalAlertas = request.CanalAlertas };
-		usuario.PreferenciasNotificacion = JsonSerializer.Serialize(preferencias, PreferenciasJsonOptions);
+		var prefs = string.IsNullOrEmpty(usuario.PreferenciasNotificacion)
+			? new PreferenciasNotificacionJson()
+			: JsonSerializer.Deserialize<PreferenciasNotificacionJson>(usuario.PreferenciasNotificacion, PreferenciasJsonOptions) 
+				?? new PreferenciasNotificacionJson();
+
+		prefs.CanalAlertas = request.CanalAlertas;
+		usuario.PreferenciasNotificacion = JsonSerializer.Serialize(prefs, PreferenciasJsonOptions);
 
 		await usuarioRepo.UpdateAsync(usuario);
 		await usuarioRepo.SaveChangesAsync();
 
-		return (true, null, new PreferenciasNotificacionDto { CanalAlertas = request.CanalAlertas });
-	}
-
-	// RF-013 - "El sistema respeta los canales seleccionados": si el usuario no ha
-	// configurado preferencia (JSON vacío o inválido), se usa AMBOS como valor por defecto,
-	// preservando el comportamiento previo a esta funcionalidad.
-	public static CanalNotificacion ResolverCanalPreferido(string preferenciasNotificacionJson)
-	{
-		if (string.IsNullOrWhiteSpace(preferenciasNotificacionJson))
-		{
-			return CanalNotificacion.AMBOS;
-		}
-
-		try
-		{
-			var preferencias = JsonSerializer.Deserialize<PreferenciasNotificacionJson>(preferenciasNotificacionJson, PreferenciasJsonOptions);
-			return preferencias?.CanalAlertas ?? CanalNotificacion.AMBOS;
-		}
-		catch (JsonException)
-		{
-			return CanalNotificacion.AMBOS;
-		}
+		return (true, null, new PreferenciasNotificacionDto { CanalAlertas = prefs.CanalAlertas ?? CanalNotificacion.AMBOS });
 	}
 }
-
-
