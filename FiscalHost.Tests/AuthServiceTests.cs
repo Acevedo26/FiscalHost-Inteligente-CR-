@@ -2,6 +2,7 @@ using FiscalHost.Api.CR.Models.DTOs;
 using FiscalHost.Api.CR.Models.Entities;
 using FiscalHost.Api.CR.Repositories;
 using FiscalHost.Api.CR.Services;
+using Microsoft.Extensions.Configuration;
 using NSubstitute;
 using Microsoft.Extensions.Configuration;
 
