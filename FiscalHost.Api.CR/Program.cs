@@ -58,6 +58,9 @@ builder.Services.AddScoped<IAccesoContadorRepository, AccesoContadorRepository>(
 builder.Services.AddScoped<IAccesoContadorService, AccesoContadorService>();
 builder.Services.AddHostedService<AlertaBackgroundService>();
 
+builder.Services.AddScoped<ISimulacionFiscalRepository, SimulacionFiscalRepository>();
+builder.Services.AddScoped<ISimulacionFiscalService, SimulacionFiscalService>();
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
