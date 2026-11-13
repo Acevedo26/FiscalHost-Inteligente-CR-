@@ -103,13 +103,15 @@ public class OperacionManualServiceTests
     [Fact]
     public async Task RegistrarGasto_Valido_GuardaGasto()
     {
+        const string descripcion = "<script>alert(1)</script>";
         var request = new GastoOperativoRequest
         {
             UsuarioId = Guid.NewGuid(),
             Proveedor = "Proveedor",
             NumeroFactura = "FAC001",
             FechaEmision = DateOnly.FromDateTime(DateTime.UtcNow),
-            MontoTotal = 5000
+            MontoTotal = 5000,
+            Descripcion = descripcion
         };
 
         var (success, error) =
@@ -120,6 +122,7 @@ public class OperacionManualServiceTests
 
         await _repository.Received(1)
             .AddGastoAsync(
-                Arg.Any<FiscalHost.Api.CR.Models.Entities.Operations.Gasto>());
+                Arg.Is<FiscalHost.Api.CR.Models.Entities.Operations.Gasto>(
+                    gasto => gasto.Descripcion == descripcion));
     }
 }

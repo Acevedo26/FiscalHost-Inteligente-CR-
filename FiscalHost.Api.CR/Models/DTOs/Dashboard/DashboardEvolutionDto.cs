@@ -6,5 +6,7 @@ public class DashboardEvolutionDto
     public int Mes { get; set; }
     public decimal IngresosBrutos { get; set; }
     public decimal ImpuestosEstimados { get; set; }
+    public decimal IvaRetenido { get; set; }
+    public decimal RentaEstimada { get; set; }
     public decimal IngresosNetos { get; set; }
 }

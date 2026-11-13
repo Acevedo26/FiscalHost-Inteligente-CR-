@@ -105,6 +105,9 @@ public class DashboardServiceTests
         Assert.Equal(1000, result.Metricas.IngresosBrutos);
         Assert.Equal(140, result.Metricas.ImpuestosEstimados);
         Assert.Equal(1000 - 140 - 500, result.Metricas.IngresosNetos);
+        Assert.Equal(130, result.Metricas.IvaDebito);
+        Assert.Equal(65, result.Metricas.IvaCreditoFiscal);
+        Assert.Equal(500, result.Metricas.GastosTotales);
 
         Assert.Single(result.EvolucionMensual);
         Assert.Equal(1000, result.EvolucionMensual[0].IngresosBrutos);

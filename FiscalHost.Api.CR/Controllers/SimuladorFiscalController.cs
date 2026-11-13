@@ -1,3 +1,4 @@
+using FiscalHost.Api.CR.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Security.Claims;
@@ -12,6 +13,7 @@ namespace FiscalHost.Api.CR.Controllers;
 
 [ApiController]
 [Route("api/taxintelligence/[controller]")]
+[Route("api/simulador")]
 [Authorize]
 public class SimuladorFiscalController : ControllerBase
 {

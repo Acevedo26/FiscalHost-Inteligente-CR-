@@ -8,6 +8,7 @@ namespace FiscalHost.Api.CR.Services;
 public interface IObligacionTributariaService
 {
     Task<ObligacionTributariaDto?> ConsultarDeudaAsync(Guid obligacionId);
+    Task<IEnumerable<ObligacionTributariaDto>> ListarPorUsuarioAsync(Guid usuarioId, DateOnly? fechaCorte = null);
     Task ProcesarCargosMoratoriosMasivosAsync(DateOnly fechaCorte);
     Task CalcularInteresesObligacionAsync(ObligacionTributaria obligacion, DateOnly fechaActual, bool notificarCambios);
 }

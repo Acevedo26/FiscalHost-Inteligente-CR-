@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using System;
 
 namespace FiscalHost.Api.CR.Models.DTOs.TaxIntelligence.Responses;
@@ -5,6 +6,7 @@ namespace FiscalHost.Api.CR.Models.DTOs.TaxIntelligence.Responses;
 public class SimulacionFiscalResponseDto
 {
     public Guid SimulacionId { get; set; }
+    [JsonIgnore]
     public Guid UsuarioId { get; set; }
     public string Nombre { get; set; } = string.Empty;
     public string? Descripcion { get; set; }

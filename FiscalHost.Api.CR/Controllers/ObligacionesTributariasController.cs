@@ -1,3 +1,4 @@
+using FiscalHost.Api.CR.Extensions;
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -10,6 +11,15 @@ namespace FiscalHost.Api.CR.Controllers;
 public class ObligacionesTributariasController(
     IObligacionTributariaService obligacionService) : ControllerBase
 {
+    [HttpGet]
+    [HttpGet("mis-obligaciones")]
+    public async Task<IActionResult> ListarMisObligaciones([FromQuery] DateOnly? fechaCorte = null)
+    {
+        var usuarioId = User.GetUsuarioId();
+        var obligaciones = await obligacionService.ListarPorUsuarioAsync(usuarioId, fechaCorte);
+        return Ok(obligaciones);
+    }
+
     [HttpGet("{id:guid}/deuda")]
     public async Task<IActionResult> ConsultarDeuda(Guid id)
     {

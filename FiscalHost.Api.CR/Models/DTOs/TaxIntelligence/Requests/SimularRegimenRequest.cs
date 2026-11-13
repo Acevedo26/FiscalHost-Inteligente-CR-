@@ -1,11 +1,12 @@
+using System.Text.Json.Serialization;
 ﻿using System.ComponentModel.DataAnnotations;
 
 namespace FiscalHost.Api.CR.Models.DTOs.TaxIntelligence.Requests;
 
 public class SimularRegimenRequest
 {
-	[Required]
-	public Guid UsuarioId { get; set; }
+	[JsonIgnore]
+    public Guid UsuarioId { get; set; }
 
 	[Required]
 	[Range(2024, 2100)]

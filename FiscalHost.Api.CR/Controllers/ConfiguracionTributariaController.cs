@@ -1,3 +1,4 @@
+using FiscalHost.Api.CR.Extensions;
 using FiscalHost.Api.CR.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,16 +12,18 @@ public class ConfiguracionTributariaController(IConfiguracionTributariaService s
     public async Task<IActionResult> GetActividades() =>
         Ok(await service.GetActividadesAsync());
 
-    [HttpGet("{anfitrionId}")]
-    public async Task<IActionResult> GetConfiguracion(string anfitrionId)
+    [HttpGet("mi-configuracion")]
+    public async Task<IActionResult> GetMiConfiguracion()
     {
+        var anfitrionId = User.GetUsuarioId().ToString();
         var result = await service.GetConfiguracionAsync(anfitrionId);
-        return result is null ? NotFound($"No se encontró configuración para el anfitrión '{anfitrionId}'.") : Ok(result);
+        return result is null ? NotFound(new { error = "No se encontró configuración." }) : Ok(result);
     }
 
     [HttpPost]
     public async Task<IActionResult> GuardarConfiguracion([FromBody] ConfiguracionTributariaRequest request)
     {
+        request.AnfitrionId = User.GetUsuarioId().ToString();
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
         var (success, error, data) = await service.GuardarConfiguracionAsync(request);

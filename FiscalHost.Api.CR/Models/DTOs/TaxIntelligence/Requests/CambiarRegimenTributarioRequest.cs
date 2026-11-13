@@ -6,8 +6,8 @@ namespace FiscalHost.Api.CR.Models.DTOs.TaxIntelligence.Requests;
 
 public class CambiarRegimenTributarioRequest
 {
-	[Required]
-	public Guid UsuarioId { get; set; }
+	[JsonIgnore]
+    public Guid UsuarioId { get; set; }
 
 	[Required]
 	[JsonConverter(typeof(JsonStringEnumConverter))]

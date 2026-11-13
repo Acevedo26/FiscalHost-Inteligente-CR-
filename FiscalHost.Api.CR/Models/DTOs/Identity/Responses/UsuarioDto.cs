@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using System;
 using FiscalHost.Api.CR.Models.Enums;
 
@@ -12,6 +13,7 @@ namespace FiscalHost.Api.CR.Models.DTOs.Identity.Responses;
 
 public class UsuarioDto
 {
+    [JsonIgnore]
     public Guid UsuarioId { get; set; }
     public TipoIdentificacion TipoIdentificacion { get; set; }
     public string NumeroIdentificacion { get; set; } = string.Empty;

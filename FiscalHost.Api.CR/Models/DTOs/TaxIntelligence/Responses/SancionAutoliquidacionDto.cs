@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using System;
 using FiscalHost.Api.CR.Models.Enums;
 
@@ -13,6 +14,7 @@ namespace FiscalHost.Api.CR.Models.DTOs.TaxIntelligence.Responses;
 public class SancionAutoliquidacionDto
 {
     public Guid SancionId { get; set; }
+    [JsonIgnore]
     public Guid UsuarioId { get; set; }
     public Guid? ObligacionId { get; set; }
     public string TipoSancion { get; set; } = string.Empty;

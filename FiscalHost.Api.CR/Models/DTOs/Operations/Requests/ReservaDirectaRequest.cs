@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using System.ComponentModel.DataAnnotations;
 
 namespace FiscalHost.Api.CR.Models.DTOs.Operations.Requests;
@@ -11,7 +12,7 @@ namespace FiscalHost.Api.CR.Models.DTOs.Operations.Requests;
 
 public class ReservaDirectaRequest
 {
-    [Required]
+    [JsonIgnore]
     public string AnfitrionId { get; set; } = string.Empty;
 
     [Required]

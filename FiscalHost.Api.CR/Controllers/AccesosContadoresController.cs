@@ -1,3 +1,4 @@
+using FiscalHost.Api.CR.Extensions;
 using FiscalHost.Api.CR.Models.DTOs.Identity.Requests;
 using FiscalHost.Api.CR.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -13,6 +14,7 @@ public class AccesosContadoresController(
     [HttpPost("invitar")]
     public async Task<IActionResult> Invitar([FromBody] InvitarContadorRequest request)
     {
+        request.AnfitrionId = User.GetUsuarioId();
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
@@ -21,6 +23,14 @@ public class AccesosContadoresController(
         return success
             ? Ok(data)
             : UnprocessableEntity(new { mensaje = error });
+    }
+
+    [HttpGet("mis-accesos")]
+    public async Task<IActionResult> GetMisAccesos()
+    {
+        var anfitrionId = User.GetUsuarioId();
+        var accesos = await service.GetByAnfitrionAsync(anfitrionId);
+        return Ok(accesos);
     }
 
     [HttpGet("anfitrion/{anfitrionId:guid}")]
@@ -51,6 +61,13 @@ public class AccesosContadoresController(
         Guid accesoId,
         [FromBody] RevocarAccesoContadorRequest request)
     {
+        request.AnfitrionId = User.GetUsuarioId();
+        if (string.IsNullOrWhiteSpace(request.Justificacion))
+        {
+            request.Justificacion = "Revocación solicitada por el usuario anfitrión.";
+            ModelState.Remove(nameof(request.Justificacion));
+        }
+
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 

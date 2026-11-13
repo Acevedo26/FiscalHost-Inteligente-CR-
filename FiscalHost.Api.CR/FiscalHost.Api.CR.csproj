@@ -17,6 +17,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="PDFtoImage" Version="5.2.1" />
+    <PackageReference Include="Scrutor" Version="7.0.0" />
     <PackageReference Include="SkiaSharp" Version="3.119.4" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
     <PackageReference Include="Tesseract" Version="5.2.0" />

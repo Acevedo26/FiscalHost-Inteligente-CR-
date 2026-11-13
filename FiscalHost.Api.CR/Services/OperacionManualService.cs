@@ -20,6 +20,10 @@ public interface IOperacionManualService
     Task<(bool success, string? error)> SubirComprobanteGastoAsync(UploadComprobanteRequest request);
     Task<(bool success, string? error)> ActualizarGastoAsync(Guid id, UpdateGastoRequest request);
     Task<(bool success, string? error)> EliminarGastoAsync(Guid id, DeleteGastoRequest request);
+    Task<(bool success, string? error)> ActualizarReservaAsync(string id, UpdateReservaRequest request);
+    Task<(bool success, string? error)> EliminarReservaAsync(string id, DeleteReservaRequest request);
+    Task<IEnumerable<FiscalHost.Api.CR.Models.DTOs.Operations.Responses.GastoDto>> GetGastosAsync(Guid usuarioId);
+    Task<IEnumerable<FiscalHost.Api.CR.Models.DTOs.Operations.Responses.ReservaDto>> GetReservasAsync(Guid usuarioId);
 }
 
 public class OperacionManualService(
@@ -42,12 +46,6 @@ public class OperacionManualService(
         };
 
         await repository.AddReservaAsync(reserva);
-        await repository.AddAuditoriaAsync(new AuditoriaOperacion
-        {
-            Operacion = OperacionAuditoria.INSERT,
-            TablaAfectada = "reserva_directa",
-            NewValues = JsonSerializer.Serialize(reserva)
-        });
         await repository.SaveChangesAsync();
         return (true, null);
     }
@@ -64,6 +62,7 @@ public class OperacionManualService(
             Proveedor = request.Proveedor,
             NumeroFactura = request.NumeroFactura,
             ClaveNumericaHacienda = request.ClaveNumericaHacienda,
+            Descripcion = request.Descripcion,
             MontoTotal = request.MontoTotal,
             MontoIvaSoportado = request.MontoIvaSoportado,
             MontoNeto = request.MontoNeto,
@@ -79,13 +78,6 @@ public class OperacionManualService(
         };
 
         await repository.AddGastoAsync(gasto);
-        await repository.AddAuditoriaAsync(new AuditoriaOperacion
-        {
-            UsuarioId = request.UsuarioId,
-            Operacion = OperacionAuditoria.INSERT,
-            TablaAfectada = "gasto",
-            NewValues = JsonSerializer.Serialize(new { gasto.Proveedor, gasto.NumeroFactura, gasto.MontoTotal })
-        });
         await repository.SaveChangesAsync();
         return (true, null);
     }
@@ -133,13 +125,15 @@ public class OperacionManualService(
 
             if (!ocrResult.Exitoso || !ocrResult.MontoTotal.HasValue)
             {
-                return (false, JsonSerializer.Serialize(new
-                {
-                    mensaje = "El OCR no pudo extraer los datos del comprobante. Complete los campos manualmente.",
-                    exitoOcr = false,
-                    evidenciaUrl = fileUrl,
-                    datosExtraidos = ocrResult
-                }));
+                throw new FiscalHost.Api.CR.Exceptions.BusinessRuleValidationException(
+                    "El OCR no pudo extraer los datos del comprobante. Complete los campos manualmente.",
+                    new
+                    {
+                        exitoOcr = false,
+                        evidenciaUrl = fileUrl,
+                        datosExtraidos = ocrResult
+                    }
+                );
             }
 
             var gasto = new Gasto
@@ -273,5 +267,216 @@ public class OperacionManualService(
 
         await repository.SaveChangesAsync();
         return (true, null);
+    }
+
+    public async Task<(bool success, string? error)> ActualizarReservaAsync(string id, UpdateReservaRequest request)
+    {
+        string razon = request.ObtenerRazon();
+        if (string.IsNullOrWhiteSpace(razon))
+        {
+            return (false, "Error: La Ley 8968 exige proporcionar una Razón de cambio o Justificación válida para modificar una reserva.");
+        }
+
+        if (Guid.TryParse(id, out var guidId))
+        {
+            var reserva = await repository.GetReservaByIdAsync(guidId);
+            if (reserva != null)
+            {
+                string valorAnterior = JsonSerializer.Serialize(new
+                {
+                    reserva.MontoColones,
+                    reserva.MontoBruto,
+                    reserva.NombreHuesped,
+                    reserva.FechaInicio
+                });
+
+                reserva.MontoColones = request.Monto;
+                reserva.MontoBruto = request.Monto;
+                if (request.FechaReserva.HasValue)
+                {
+                    reserva.FechaInicio = request.FechaReserva.Value;
+                }
+                if (!string.IsNullOrWhiteSpace(request.Huesped))
+                {
+                    reserva.NombreHuesped = request.Huesped;
+                }
+
+                string valorNuevo = JsonSerializer.Serialize(new
+                {
+                    reserva.MontoColones,
+                    reserva.MontoBruto,
+                    reserva.NombreHuesped,
+                    reserva.FechaInicio
+                });
+
+                await repository.UpdateReservaAsync(reserva);
+                await repository.AddAuditoriaAsync(new AuditoriaOperacion
+                {
+                    UsuarioId = reserva.UsuarioId,
+                    Operacion = OperacionAuditoria.UPDATE,
+                    TablaAfectada = "reserva",
+                    RegistroId = reserva.ReservaId,
+                    OldValues = valorAnterior,
+                    NewValues = valorNuevo,
+                    CamposModificados = ["monto_colones", "monto_bruto", "nombre_huesped", "fecha_inicio"],
+                    Justificacion = razon
+                });
+
+                await repository.SaveChangesAsync();
+                return (true, null);
+            }
+        }
+
+        if (int.TryParse(id, out var intId))
+        {
+            var reservaDirecta = await repository.GetReservaDirectaByIdAsync(intId);
+            if (reservaDirecta != null)
+            {
+                string valorAnterior = JsonSerializer.Serialize(new
+                {
+                    reservaDirecta.Monto,
+                    reservaDirecta.Huesped,
+                    reservaDirecta.FechaReserva
+                });
+
+                reservaDirecta.Monto = request.Monto;
+                if (request.FechaReserva.HasValue)
+                {
+                    reservaDirecta.FechaReserva = request.FechaReserva.Value;
+                }
+                if (!string.IsNullOrWhiteSpace(request.Huesped))
+                {
+                    reservaDirecta.Huesped = request.Huesped;
+                }
+
+                string valorNuevo = JsonSerializer.Serialize(new
+                {
+                    reservaDirecta.Monto,
+                    reservaDirecta.Huesped,
+                    reservaDirecta.FechaReserva
+                });
+
+                await repository.UpdateReservaDirectaAsync(reservaDirecta);
+                Guid.TryParse(reservaDirecta.AnfitrionId, out var usuarioId);
+
+                await repository.AddAuditoriaAsync(new AuditoriaOperacion
+                {
+                    UsuarioId = usuarioId,
+                    Operacion = OperacionAuditoria.UPDATE,
+                    TablaAfectada = "reserva_directa",
+                    RegistroId = Guid.Empty,
+                    OldValues = valorAnterior,
+                    NewValues = valorNuevo,
+                    CamposModificados = ["monto", "huesped", "fecha_reserva"],
+                    Justificacion = razon
+                });
+
+                await repository.SaveChangesAsync();
+                return (true, null);
+            }
+        }
+
+        return (false, "Reserva no encontrada.");
+    }
+
+    public async Task<(bool success, string? error)> EliminarReservaAsync(string id, DeleteReservaRequest request)
+    {
+        string razon = request.ObtenerRazon();
+        if (string.IsNullOrWhiteSpace(razon))
+        {
+            return (false, "Error: La Ley 8968 exige proporcionar una Razón de cambio o Justificación válida para eliminar una reserva.");
+        }
+
+        if (Guid.TryParse(id, out var guidId))
+        {
+            var reserva = await repository.GetReservaByIdAsync(guidId);
+            if (reserva != null)
+            {
+                string valorAnterior = JsonSerializer.Serialize(new
+                {
+                    reserva.MontoColones,
+                    reserva.NombreHuesped,
+                    reserva.FechaInicio
+                });
+
+                await repository.DeleteReservaAsync(reserva);
+                await repository.AddAuditoriaAsync(new AuditoriaOperacion
+                {
+                    UsuarioId = reserva.UsuarioId,
+                    Operacion = OperacionAuditoria.DELETE,
+                    TablaAfectada = "reserva",
+                    RegistroId = reserva.ReservaId,
+                    OldValues = valorAnterior,
+                    Justificacion = razon
+                });
+
+                await repository.SaveChangesAsync();
+                return (true, null);
+            }
+        }
+
+        if (int.TryParse(id, out var intId))
+        {
+            var reservaDirecta = await repository.GetReservaDirectaByIdAsync(intId);
+            if (reservaDirecta != null)
+            {
+                string valorAnterior = JsonSerializer.Serialize(new
+                {
+                    reservaDirecta.Monto,
+                    reservaDirecta.Huesped,
+                    reservaDirecta.FechaReserva
+                });
+
+                await repository.DeleteReservaDirectaAsync(reservaDirecta);
+                Guid.TryParse(reservaDirecta.AnfitrionId, out var usuarioId);
+
+                await repository.AddAuditoriaAsync(new AuditoriaOperacion
+                {
+                    UsuarioId = usuarioId,
+                    Operacion = OperacionAuditoria.DELETE,
+                    TablaAfectada = "reserva_directa",
+                    RegistroId = Guid.Empty,
+                    OldValues = valorAnterior,
+                    Justificacion = razon
+                });
+
+                await repository.SaveChangesAsync();
+                return (true, null);
+            }
+        }
+
+        return (false, "Reserva no encontrada.");
+    }
+
+    public async Task<IEnumerable<FiscalHost.Api.CR.Models.DTOs.Operations.Responses.GastoDto>> GetGastosAsync(Guid usuarioId)
+    {
+        var gastos = await repository.GetGastosByUsuarioIdAsync(usuarioId);
+        return gastos.Select(g => new FiscalHost.Api.CR.Models.DTOs.Operations.Responses.GastoDto
+        {
+            GastoId = g.GastoId,
+            PropiedadId = g.PropiedadId,
+            Proveedor = g.Proveedor,
+            Descripcion = g.Descripcion,
+            NumeroFactura = g.NumeroFactura,
+            FechaEmision = g.FechaEmision,
+            MontoTotal = g.MontoTotal,
+            EsCreditoFiscalValido = g.EsCreditoFiscalValido,
+            EstadoOcr = g.EstadoOcr,
+            EstadoValidacion = g.EstadoValidacion
+        });
+    }
+
+    public async Task<IEnumerable<FiscalHost.Api.CR.Models.DTOs.Operations.Responses.ReservaDto>> GetReservasAsync(Guid usuarioId)
+    {
+        var reservas = await repository.GetReservasByUsuarioIdAsync(usuarioId);
+        return reservas.Select(r => new FiscalHost.Api.CR.Models.DTOs.Operations.Responses.ReservaDto
+        {
+            ReservaId = r.ReservaId,
+            FechaInicio = r.FechaInicio,
+            MontoColones = r.MontoColones,
+            NombreHuesped = r.NombreHuesped,
+            ClasificacionFiscal = r.ClasificacionFiscal,
+            PlataformaOrigen = r.PlataformaOrigen
+        });
     }
 }

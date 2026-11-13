@@ -76,4 +76,41 @@ public class ObligacionTributariaServiceTests
         Assert.Equal(0, obligacion.MontoInteresesAcumulados);
         Assert.Equal(0, obligacion.MontoTotalActualizado); // Nunca se procesó
     }
+
+    [Fact]
+    public async Task ListarPorUsuario_CalculaMoraYMarcaVencida_SiFechaCorteEsPosterior()
+    {
+        // Arrange
+        var usuarioId = Guid.NewGuid();
+        var obligaciones = new System.Collections.Generic.List<ObligacionTributaria>
+        {
+            new ObligacionTributaria
+            {
+                ObligacionId = Guid.NewGuid(),
+                UsuarioId = usuarioId,
+                MontoCapital = 100000m,
+                MontoMulta = 0m,
+                MontoInteresesAcumulados = 0m,
+                MontoTotalActualizado = 100000m,
+                FechaVencimiento = new DateOnly(2026, 1, 1),
+                Estado = Api.CR.Models.Enums.TaxIntelligence.EstadoObligacion.VIGENTE,
+                Descripcion = "IVA Enero"
+            }
+        };
+
+        _repoMock.Setup(r => r.GetByUsuarioIdAsync(usuarioId)).ReturnsAsync(obligaciones);
+        var service = new ObligacionTributariaService(_repoMock.Object, _settings, _notificacionMock.Object, _loggerMock.Object);
+
+        // Act - 10 días después del vencimiento
+        var fechaCorte = new DateOnly(2026, 1, 11);
+        var resultado = (await service.ListarPorUsuarioAsync(usuarioId, fechaCorte)).ToList();
+
+        // Assert
+        Assert.Single(resultado);
+        var item = resultado[0];
+        Assert.Equal(10, item.DiasVencido);
+        Assert.Equal(Api.CR.Models.Enums.TaxIntelligence.EstadoObligacion.VENCIDA, item.Estado);
+        Assert.True(item.MontoInteresesAcumulados > 0);
+        Assert.True(item.MontoTotalActualizado > item.MontoCapital);
+    }
 }

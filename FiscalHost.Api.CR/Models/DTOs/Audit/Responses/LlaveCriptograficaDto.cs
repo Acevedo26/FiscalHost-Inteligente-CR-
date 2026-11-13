@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using System;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Http;
@@ -13,14 +14,16 @@ namespace FiscalHost.Api.CR.Models.DTOs.Audit.Responses;
 
 public class CargarLlaveRequest
 {
-    [Required] public string AnfitrionId { get; set; } = string.Empty;
+    [JsonIgnore]
+    public string AnfitrionId { get; set; } = string.Empty;
     [Required] public IFormFile Archivo { get; set; } = null!;
     [Required] public string Contrasena { get; set; } = string.Empty;
 }
 
 public class ActualizarContrasenaRequest
 {
-    [Required] public string AnfitrionId { get; set; } = string.Empty;
+    [JsonIgnore]
+    public string AnfitrionId { get; set; } = string.Empty;
     [Required] public string ContrasenaActual { get; set; } = string.Empty;
     [Required] public string ContrasenaNueva { get; set; } = string.Empty;
 }

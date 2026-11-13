@@ -18,6 +18,15 @@ public class ObligacionTributariaRepository(AppDbContext dbContext) : IObligacio
             .FirstOrDefaultAsync(o => o.ObligacionId == id);
     }
 
+    public async Task<IEnumerable<ObligacionTributaria>> GetByUsuarioIdAsync(Guid usuarioId)
+    {
+        return await dbContext.ObligacionesTributarias
+            .Include(o => o.Usuario)
+            .Where(o => o.UsuarioId == usuarioId)
+            .OrderByDescending(o => o.FechaVencimiento)
+            .ToListAsync();
+    }
+
     public async Task<IEnumerable<ObligacionTributaria>> GetVencidasPendientesAsync(DateOnly fechaCorte)
     {
         return await dbContext.ObligacionesTributarias

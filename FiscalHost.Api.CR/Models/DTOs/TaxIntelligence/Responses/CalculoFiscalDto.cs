@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using System;
 using FiscalHost.Api.CR.Models.Enums;
 
@@ -13,6 +14,7 @@ namespace FiscalHost.Api.CR.Models.DTOs.TaxIntelligence.Responses;
 public class CalculoFiscalDto
 {
     public Guid CalculoId { get; set; }
+    [JsonIgnore]
     public Guid UsuarioId { get; set; }
     public Guid PeriodoId { get; set; }
     public TipoFormulario TipoFormulario { get; set; }
