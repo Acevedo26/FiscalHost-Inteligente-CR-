@@ -64,6 +64,11 @@ public class DashboardService : IDashboardService
         
         response.Metricas.IngresosBrutos = ingresosBrutos;
         response.Metricas.ImpuestosEstimados = ivaNeto + rentaEstimada;
+        response.Metricas.IvaDebito = ivaRecaudado;
+        response.Metricas.IvaCreditoFiscal = ivaSoportadoValido;
+        response.Metricas.IvaRetenido = ivaNeto;
+        response.Metricas.RentaEstimada = rentaEstimada;
+        response.Metricas.GastosTotales = gastosTotales;
         response.Metricas.IngresosNetos = ingresosBrutos - response.Metricas.ImpuestosEstimados - gastosTotales;
 
         // Evaluar Riesgo
@@ -118,6 +123,8 @@ public class DashboardService : IDashboardService
                     Mes = periodo.Month,
                     IngresosBrutos = mesIngresos,
                     ImpuestosEstimados = mesImpuestos,
+                    IvaRetenido = mesIvaNeto,
+                    RentaEstimada = mesRenta,
                     IngresosNetos = mesIngresos - mesImpuestos - mesGastos
                 });
             }

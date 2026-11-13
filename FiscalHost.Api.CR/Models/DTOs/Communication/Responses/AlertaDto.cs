@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using System;
 using FiscalHost.Api.CR.Models.Enums;
 
@@ -13,6 +14,7 @@ namespace FiscalHost.Api.CR.Models.DTOs.Communication.Responses;
 public class AlertaDto
 {
     public Guid AlertaId { get; set; }
+    [JsonIgnore]
     public Guid UsuarioId { get; set; }
     public Guid? ObligacionId { get; set; }
     public TipoAlerta TipoAlerta { get; set; }

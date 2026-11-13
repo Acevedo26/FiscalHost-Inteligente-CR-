@@ -1,3 +1,4 @@
+using FiscalHost.Api.CR.Extensions;
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -20,6 +21,7 @@ public class CalculoFiscalController : ControllerBase
     [HttpPost("iva/generar")]
     public async Task<IActionResult> GenerarCalculoIva([FromBody] GenerarCalculoIvaRequest request)
     {
+        request.UsuarioId = User.GetUsuarioId();
         try
         {
             var resultado = await _calculoIvaService.CalcularIvaDevengadoAsync(request.UsuarioId, request.Anio, request.Mes);

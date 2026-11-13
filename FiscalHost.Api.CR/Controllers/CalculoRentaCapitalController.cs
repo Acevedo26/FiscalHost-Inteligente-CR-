@@ -1,3 +1,4 @@
+using FiscalHost.Api.CR.Extensions;
 ﻿using FiscalHost.Api.CR.Models.DTOs.TaxIntelligence.Requests;
 using FiscalHost.Api.CR.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -12,6 +13,7 @@ public class CalculoRentaCapitalController(
 	[HttpPost("calcular")]
 	public async Task<IActionResult> Calcular([FromBody] CalcularRentaCapitalRequest request)
 	{
+        request.UsuarioId = User.GetUsuarioId();
 		if (!ModelState.IsValid)
 			return BadRequest(ModelState);
 
@@ -25,6 +27,7 @@ public class CalculoRentaCapitalController(
 	[HttpPost("simular")]
 	public async Task<IActionResult> Simular([FromBody] SimularRegimenRequest request)
 	{
+        request.UsuarioId = User.GetUsuarioId();
 		if (!ModelState.IsValid)
 			return BadRequest(ModelState);
 
@@ -38,6 +41,7 @@ public class CalculoRentaCapitalController(
 	[HttpPost("cambiar-regimen")]
 	public async Task<IActionResult> CambiarRegimen([FromBody] CambiarRegimenTributarioRequest request)
 	{
+        request.UsuarioId = User.GetUsuarioId();
 		if (!ModelState.IsValid)
 			return BadRequest(ModelState);
 

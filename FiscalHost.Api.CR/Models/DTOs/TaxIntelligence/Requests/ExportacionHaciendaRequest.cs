@@ -1,10 +1,11 @@
+using System.Text.Json.Serialization;
 using System.ComponentModel.DataAnnotations;
 
 namespace FiscalHost.Api.CR.Models.DTOs.TaxIntelligence.Requests;
 
 public class ExportacionHaciendaRequest
 {
-    [Required]
+    [JsonIgnore]
     public Guid UsuarioId { get; set; }
 
     public Guid? CalculoId { get; set; }

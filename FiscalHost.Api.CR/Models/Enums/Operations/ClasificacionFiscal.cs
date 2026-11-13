@@ -11,11 +11,11 @@ namespace FiscalHost.Api.CR.Models.Enums.Operations;
 
 public enum ClasificacionFiscal
 {
-    [PgName("GRAVADO")]
+    [PgName("GRAVADO_13")]
     GRAVADO,
     [PgName("EXENTO")]
     EXENTO,
-    [PgName("GRAVADO_CON_RETENCION")]
+    [PgName("RETENCION_15")]
     GRAVADO_CON_RETENCION
 }
 

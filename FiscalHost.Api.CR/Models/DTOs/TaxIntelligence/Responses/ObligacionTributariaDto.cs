@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using System;
 using FiscalHost.Api.CR.Models.Enums;
 
@@ -9,10 +10,10 @@ namespace FiscalHost.Api.CR.Models.DTOs.TaxIntelligence.Responses;
 // manera, cualquier dato sensible.
 // ========================================================================
 
-
 public class ObligacionTributariaDto
 {
     public Guid ObligacionId { get; set; }
+    [JsonIgnore]
     public Guid UsuarioId { get; set; }
     public Guid? CalculoId { get; set; }
     public Guid PeriodoId { get; set; }
@@ -27,6 +28,5 @@ public class ObligacionTributariaDto
     public EstadoObligacion Estado { get; set; }
     public decimal? TasaInteresAplicada { get; set; }
     public string HistorialIntereses { get; set; } = "{}";
+    public int DiasVencido { get; set; }
 }
-
-

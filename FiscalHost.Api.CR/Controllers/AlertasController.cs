@@ -1,4 +1,5 @@
-﻿using System;
+using FiscalHost.Api.CR.Extensions;
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using FiscalHost.Api.CR.Services;
@@ -9,9 +10,10 @@ namespace FiscalHost.Api.CR.Controllers;
 [Route("api/alertas")]
 public class AlertasController(IAlertaService alertaService) : ControllerBase
 {
-	[HttpGet("usuario/{usuarioId:guid}")]
-	public async Task<IActionResult> ListarPorUsuario(Guid usuarioId, [FromQuery] bool soloNoLeidas = false)
+	[HttpGet("mis-alertas")]
+	public async Task<IActionResult> ListarMisAlertas([FromQuery] bool soloNoLeidas = false)
 	{
+		var usuarioId = User.GetUsuarioId();
 		var alertas = await alertaService.ListarPorUsuarioAsync(usuarioId, soloNoLeidas);
 		return Ok(alertas);
 	}

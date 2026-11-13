@@ -1,10 +1,11 @@
+using System.Text.Json.Serialization;
 using System.ComponentModel.DataAnnotations;
 
 namespace FiscalHost.Api.CR.Models.DTOs.Operations.Requests;
 
 public class ReclasificacionIngresoRequest
 {
-    [Required]
+    [JsonIgnore]
     public string UsuarioId { get; set; } = string.Empty;
 
     [Required]

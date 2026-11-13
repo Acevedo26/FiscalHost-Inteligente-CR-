@@ -1,3 +1,4 @@
+using FiscalHost.Api.CR.Extensions;
 using FiscalHost.Api.CR.Models.DTOs.Audit.Requests;
 using FiscalHost.Api.CR.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -5,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace FiscalHost.Api.CR.Controllers;
 
 [ApiController]
-[Route("api/auditoria")]
+[Route("api/auditoria-inalterable")]
 public class AuditoriaInalterableController(
     IAuditoriaInalterableService service)
     : ControllerBase
@@ -23,15 +24,18 @@ public class AuditoriaInalterableController(
             : UnprocessableEntity(new { mensaje = error });
     }
 
+    [HttpGet]
     [HttpGet("historial")]
     public async Task<IActionResult> Historial(
         [FromQuery] Guid? usuarioId,
         [FromQuery] string? tablaAfectada,
         [FromQuery] Guid? registroId)
     {
+        usuarioId ??= User.GetUsuarioId();
         var historial = await service.ConsultarHistorialAsync(usuarioId, tablaAfectada, registroId);
         return Ok(historial);
     }
+
 
     [HttpGet("exportar")]
     public async Task<IActionResult> Exportar(
@@ -39,6 +43,7 @@ public class AuditoriaInalterableController(
         [FromQuery] string? tablaAfectada,
         [FromQuery] Guid? registroId)
     {
+        usuarioId ??= User.GetUsuarioId();
         var resultado = await service.ExportarHistorialAsync(usuarioId, tablaAfectada, registroId);
 
         return resultado.Success

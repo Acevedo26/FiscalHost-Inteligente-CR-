@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using System;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Http;
@@ -9,7 +10,7 @@ namespace FiscalHost.Api.CR.Models.DTOs.Operations.Requests;
 // ========================================================================
 public class UploadComprobanteRequest
 {
-    [Required]
+    [JsonIgnore]
     public Guid UsuarioId { get; set; }
 
     public Guid? PropiedadId { get; set; }

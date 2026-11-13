@@ -9,6 +9,7 @@ namespace FiscalHost.Api.CR.Repositories;
 public interface IObligacionTributariaRepository
 {
     Task<ObligacionTributaria?> GetByIdAsync(Guid id);
+    Task<IEnumerable<ObligacionTributaria>> GetByUsuarioIdAsync(Guid usuarioId);
     Task<IEnumerable<ObligacionTributaria>> GetVencidasPendientesAsync(DateOnly fechaCorte);
 	Task<IEnumerable<ObligacionTributaria>> GetProximasAVencerAsync(DateOnly fechaActual, int diasMaximo);
 	Task UpdateAsync(ObligacionTributaria obligacion);

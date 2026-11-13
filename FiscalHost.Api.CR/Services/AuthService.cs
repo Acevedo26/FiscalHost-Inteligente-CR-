@@ -103,7 +103,15 @@ public class AuthService(IUsuarioRepository usuarioRepo, IConfiguration config) 
         var token = tokenHandler.CreateToken(tokenDescriptor);
         var jwt = tokenHandler.WriteToken(token);
 
-        return (true, null, new LoginResponse { Token = jwt, Mensaje = "Inicio de sesión exitoso." });
+        var loginUsuario = new FiscalHost.Api.CR.Models.DTOs.Identity.Responses.LoginUsuarioResponse
+        {
+            Id = usuario.UsuarioId.ToString(),
+            NombreCompleto = usuario.NombreCompleto,
+            CorreoElectronico = usuario.CorreoElectronico,
+            Rol = usuario.RolPrincipal.ToString()
+        };
+
+        return (true, null, new LoginResponse { Token = jwt, Mensaje = "Inicio de sesión exitoso.", Usuario = loginUsuario });
     }
 
     private static bool ValidarContrasena(string password)

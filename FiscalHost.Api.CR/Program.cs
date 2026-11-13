@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc.Authorization; 
 using FiscalHost.Api.CR.Data;
 using FiscalHost.Api.CR.Extensions;
 using FiscalHost.Api.CR.Repositories;
@@ -31,6 +32,7 @@ builder.Services.AddScoped<ILlaveCriptograficaService, LlaveCriptograficaService
 builder.Services.AddScoped<INotificacionService, NotificacionService>();
 builder.Services.AddScoped<IOperacionManualRepository, OperacionManualRepository>();
 builder.Services.AddScoped<IOperacionManualService, OperacionManualService>();
+builder.Services.Decorate<IOperacionManualService, OperacionManualServiceAuditDecorator>();
 builder.Services.AddScoped<IBlobStorageService, LocalStorageService>();
 builder.Services.AddScoped<IOcrService, OcrService>();
 builder.Services.AddScoped<ICalculoRentaCapitalRepository, CalculoRentaCapitalRepository>();
@@ -61,6 +63,17 @@ builder.Services.AddHostedService<AlertaBackgroundService>();
 builder.Services.AddScoped<ISimulacionFiscalRepository, SimulacionFiscalRepository>();
 builder.Services.AddScoped<ISimulacionFiscalService, SimulacionFiscalService>();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("DevCorsPolicy", policy =>
+    {
+        policy.WithOrigins("http://localhost:59357")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -77,7 +90,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add(new AuthorizeFilter());
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -108,12 +124,16 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+//Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+  app.UseSwagger();
+  app.UseSwaggerUI();
 }
+
+app.UseMiddleware<FiscalHost.Api.CR.Middlewares.GlobalExceptionMiddleware>();
+
+app.UseCors("DevCorsPolicy");
 
 app.UseHttpsRedirection();
 

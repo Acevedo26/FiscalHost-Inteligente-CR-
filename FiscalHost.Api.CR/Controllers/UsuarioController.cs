@@ -1,3 +1,4 @@
+using FiscalHost.Api.CR.Extensions;
 using System;
 using System.Threading.Tasks;
 using FiscalHost.Api.CR.Models.DTOs.Identity.Requests;
@@ -17,6 +18,18 @@ public class UsuarioController(IUsuarioService service) : ControllerBase
         return Ok(usuarios);
     }
 
+	[HttpGet("me")]
+	public async Task<IActionResult> GetMe()
+	{
+		var usuarioId = User.GetUsuarioId();
+		var usuario = await service.ObtenerPorIdAsync(usuarioId);
+		if (usuario == null)
+		{
+			return NotFound(new { error = "Usuario no encontrado." });
+		}
+		return Ok(usuario);
+	}
+
 	[HttpGet("{id:guid}")]
 	public async Task<IActionResult> GetById(Guid id)
 	{
@@ -26,6 +39,18 @@ public class UsuarioController(IUsuarioService service) : ControllerBase
 			return NotFound(new { error = "Usuario no encontrado." });
 		}
 		return Ok(usuario);
+	}
+
+	[HttpGet("me/preferencias-notificacion")]
+	public async Task<IActionResult> ObtenerMisPreferenciasNotificacion()
+	{
+		var usuarioId = User.GetUsuarioId();
+		var preferencias = await service.ObtenerPreferenciasNotificacionAsync(usuarioId);
+		if (preferencias == null)
+		{
+			return NotFound(new { error = "Usuario no encontrado." });
+		}
+		return Ok(preferencias);
 	}
 
 	[HttpGet("{id:guid}/preferencias-notificacion")]
@@ -48,6 +73,20 @@ public class UsuarioController(IUsuarioService service) : ControllerBase
 			return NotFound(new { error });
 		}
 		return Ok(new { mensaje = "Tutorial marcado como completado." });
+	}
+
+	[HttpPut("me/preferencias-notificacion")]
+	public async Task<IActionResult> ActualizarMisPreferenciasNotificacion(
+		[FromBody] ActualizarPreferenciasNotificacionRequest request)
+	{
+		var usuarioId = User.GetUsuarioId();
+		var (success, error, data) = await service.ActualizarPreferenciasNotificacionAsync(usuarioId, request);
+		if (!success)
+		{
+			return NotFound(new { error });
+		}
+
+		return Ok(data);
 	}
 
 	[HttpPut("{id:guid}/preferencias-notificacion")]

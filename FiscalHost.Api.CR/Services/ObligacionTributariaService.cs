@@ -41,6 +41,65 @@ public class ObligacionTributariaService(
         };
     }
 
+    public async Task<IEnumerable<ObligacionTributariaDto>> ListarPorUsuarioAsync(Guid usuarioId, DateOnly? fechaCorte = null)
+    {
+        var obligaciones = await repository.GetByUsuarioIdAsync(usuarioId);
+        var corte = fechaCorte ?? DateOnly.FromDateTime(DateTime.UtcNow);
+        var lista = new List<ObligacionTributariaDto>();
+
+        foreach (var obligacion in obligaciones)
+        {
+            var dto = new ObligacionTributariaDto
+            {
+                ObligacionId = obligacion.ObligacionId,
+                UsuarioId = obligacion.UsuarioId,
+                CalculoId = obligacion.CalculoId,
+                PeriodoId = obligacion.PeriodoId,
+                TipoFormulario = obligacion.TipoFormulario,
+                Descripcion = obligacion.Descripcion,
+                MontoCapital = obligacion.MontoCapital,
+                MontoMulta = obligacion.MontoMulta,
+                MontoInteresesAcumulados = obligacion.MontoInteresesAcumulados,
+                MontoTotalActualizado = obligacion.MontoTotalActualizado,
+                FechaVencimiento = new DateTime(obligacion.FechaVencimiento.Year, obligacion.FechaVencimiento.Month, obligacion.FechaVencimiento.Day),
+                FechaPago = obligacion.FechaPago.HasValue ? new DateTime(obligacion.FechaPago.Value.Year, obligacion.FechaPago.Value.Month, obligacion.FechaPago.Value.Day) : null,
+                Estado = obligacion.Estado,
+                TasaInteresAplicada = obligacion.TasaInteresAplicada ?? taxSettings.Value.DefaultInterestRate,
+                HistorialIntereses = obligacion.HistorialIntereses
+            };
+
+            if (obligacion.FechaVencimiento < corte)
+            {
+                int diasVencido = Math.Max(0, corte.DayNumber - obligacion.FechaVencimiento.DayNumber);
+                dto.DiasVencido = diasVencido;
+                if (dto.Estado == FiscalHost.Api.CR.Models.Enums.TaxIntelligence.EstadoObligacion.VIGENTE)
+                {
+                    dto.Estado = FiscalHost.Api.CR.Models.Enums.TaxIntelligence.EstadoObligacion.VENCIDA;
+                }
+
+                decimal tasaAnual = dto.TasaInteresAplicada ?? taxSettings.Value.DefaultInterestRate;
+                int diasEnAno = DateTime.IsLeapYear(corte.Year) ? 366 : 365;
+                decimal tasaDiaria = tasaAnual / diasEnAno;
+                decimal baseCalculo = obligacion.MontoCapital + obligacion.MontoMulta;
+                decimal moraCalculada = Math.Round(baseCalculo * tasaDiaria * diasVencido, 2);
+
+                if (moraCalculada > dto.MontoInteresesAcumulados)
+                {
+                    dto.MontoInteresesAcumulados = moraCalculada;
+                    dto.MontoTotalActualizado = obligacion.MontoCapital + obligacion.MontoMulta + moraCalculada;
+                }
+            }
+            else
+            {
+                dto.DiasVencido = 0;
+            }
+
+            lista.Add(dto);
+        }
+
+        return lista;
+    }
+
     public async Task ProcesarCargosMoratoriosMasivosAsync(DateOnly fechaCorte)
     {
         logger.LogInformation("Iniciando procesamiento masivo de mora para la fecha de corte: {FechaCorte}", fechaCorte);

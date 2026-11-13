@@ -18,6 +18,14 @@ public interface IOperacionManualRepository
     Task DeleteGastoAsync(Gasto gasto);
 
     Task<bool> ExisteGastoDuplicadoAsync(string proveedor, string numeroFactura);
+    Task<IEnumerable<Gasto>> GetGastosByUsuarioIdAsync(Guid usuarioId);
+    Task<IEnumerable<Reserva>> GetReservasByUsuarioIdAsync(Guid usuarioId);
+    Task<Reserva?> GetReservaByIdAsync(Guid id);
+    Task<ReservaDirecta?> GetReservaDirectaByIdAsync(int id);
+    Task UpdateReservaAsync(Reserva reserva);
+    Task DeleteReservaAsync(Reserva reserva);
+    Task UpdateReservaDirectaAsync(ReservaDirecta reserva);
+    Task DeleteReservaDirectaAsync(ReservaDirecta reserva);
 
     Task AddAuditoriaAsync(AuditoriaOperacion auditoria);
 
@@ -64,6 +72,56 @@ public class OperacionManualRepository(AppDbContext context) : IOperacionManualR
         return await context.Gastos.AnyAsync(g => 
             g.Proveedor.ToLower() == proveedor.ToLower() && 
             g.NumeroFactura == numeroFactura);
+    }
+    
+    public async Task<IEnumerable<Gasto>> GetGastosByUsuarioIdAsync(Guid usuarioId)
+    {
+        return await context.Gastos
+            .Where(g => g.UsuarioId == usuarioId && g.DeletedAt == null)
+            .OrderByDescending(g => g.FechaEmision)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Reserva>> GetReservasByUsuarioIdAsync(Guid usuarioId)
+    {
+        return await context.Reservas
+            .Where(r => r.UsuarioId == usuarioId)
+            .OrderByDescending(r => r.FechaInicio)
+            .ToListAsync();
+    }
+
+    public async Task<Reserva?> GetReservaByIdAsync(Guid id)
+    {
+        return await context.Reservas.FirstOrDefaultAsync(r => r.ReservaId == id);
+    }
+
+    public async Task<ReservaDirecta?> GetReservaDirectaByIdAsync(int id)
+    {
+        return await context.ReservasDirectas.FirstOrDefaultAsync(r => r.Id == id);
+    }
+
+    public Task UpdateReservaAsync(Reserva reserva)
+    {
+        context.Reservas.Update(reserva);
+        return Task.CompletedTask;
+    }
+
+    public Task DeleteReservaAsync(Reserva reserva)
+    {
+        context.Reservas.Remove(reserva);
+        return Task.CompletedTask;
+    }
+
+    public Task UpdateReservaDirectaAsync(ReservaDirecta reserva)
+    {
+        context.ReservasDirectas.Update(reserva);
+        return Task.CompletedTask;
+    }
+
+    public Task DeleteReservaDirectaAsync(ReservaDirecta reserva)
+    {
+        context.ReservasDirectas.Remove(reserva);
+        return Task.CompletedTask;
     }
 
     public async Task AddAuditoriaAsync(AuditoriaOperacion auditoria)

@@ -1,10 +1,11 @@
+using System.Text.Json.Serialization;
 using System.ComponentModel.DataAnnotations;
 
 namespace FiscalHost.Api.CR.Models.DTOs.Operations.Requests;
 
 public class ClasificarIngresoRequest
 {
-    [Required]
+    [JsonIgnore]
     public string AnfitrionId { get; set; } = string.Empty;
 
     [Required]

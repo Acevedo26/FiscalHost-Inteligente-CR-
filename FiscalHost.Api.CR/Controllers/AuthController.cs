@@ -1,19 +1,21 @@
 using FiscalHost.Api.CR.Models.DTOs.Identity.Requests;
 using FiscalHost.Api.CR.Services;
 using Microsoft.AspNetCore.Mvc;
-
+using Microsoft.AspNetCore.Authorization;
 namespace FiscalHost.Api.CR.Controllers;
 
-[ApiController]
+[ApiController] 
 [Route("api/auth")]
+[AllowAnonymous]
 public class AuthController(IAuthService service) : ControllerBase
 {
     [HttpPost("register")]
+    [HttpPost("registro")]
     public async Task<IActionResult> Register(
         [FromBody] RegistroUsuarioRequest request)
     {
         if (!ModelState.IsValid)
-            return BadRequest(ModelState);
+            return BadRequest(ModelState); 
 
         var (success, error, data) =
             await service.RegistrarUsuarioAsync(request);
@@ -24,10 +26,10 @@ public class AuthController(IAuthService service) : ControllerBase
                 mensaje = error
             });
 
-        return Ok(data);
+        return Ok(data); 
     }
-
-    [HttpPost("login")]
+     
+    [HttpPost("login")] 
     public async Task<IActionResult> Login(
         [FromBody] LoginRequest request)
     {

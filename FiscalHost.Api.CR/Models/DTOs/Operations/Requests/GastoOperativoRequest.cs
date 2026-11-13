@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using System;
 using System.ComponentModel.DataAnnotations;
 using FiscalHost.Api.CR.Models.Enums;
@@ -13,7 +14,7 @@ namespace FiscalHost.Api.CR.Models.DTOs.Operations.Requests;
 
 public class GastoOperativoRequest
 {
-    [Required]
+    [JsonIgnore]
     public Guid UsuarioId { get; set; }
 
     public Guid? PropiedadId { get; set; }

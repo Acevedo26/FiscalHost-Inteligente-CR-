@@ -1,3 +1,4 @@
+using FiscalHost.Api.CR.Extensions;
 using FiscalHost.Api.CR.Models.DTOs.Operations.Requests;
 using FiscalHost.Api.CR.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -13,6 +14,7 @@ public class ClasificacionIngresosController(
     public async Task<IActionResult> Clasificar(
         [FromBody] ClasificarIngresoRequest request)
     {
+        request.AnfitrionId = User.GetUsuarioId().ToString();
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
