@@ -15,9 +15,19 @@ public class GeneradorBorradorController(IGeneradorBorradorService service) : Co
     [HttpPost("d104")]
     public async Task<ActionResult<BorradorD104Dto>> GetBorradorD104([FromBody] GenerarBorradorD104Request request)
     {
+        Guid usuarioId;
         try
         {
-            var borrador = await service.GenerarD104Async(request.UsuarioId, request.Anio, request.Mes);
+            usuarioId = User.GetUsuarioId();
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { mensaje = ex.Message });
+        }
+
+        try
+        {
+            var borrador = await service.GenerarD104Async(usuarioId, request.Anio, request.Mes);
             return Ok(borrador);
         }
         catch (InvalidOperationException ex)
@@ -33,9 +43,19 @@ public class GeneradorBorradorController(IGeneradorBorradorService service) : Co
     [HttpPost("d125")]
     public async Task<ActionResult<BorradorD125Dto>> GetBorradorD125([FromBody] GenerarBorradorD125Request request)
     {
+        Guid usuarioId;
         try
         {
-            var borrador = await service.GenerarD125Async(request.UsuarioId, request.Anio, request.RegimenUtilidades);
+            usuarioId = User.GetUsuarioId();
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { mensaje = ex.Message });
+        }
+
+        try
+        {
+            var borrador = await service.GenerarD125Async(usuarioId, request.Anio, request.RegimenUtilidades);
             return Ok(borrador);
         }
         catch (InvalidOperationException ex)
