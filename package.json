@@ -1,0 +1,22 @@
+{
+  "name": "fiscalhost-e2e-tests",
+  "version": "1.0.0",
+  "description": "Playwright E2E tests for FiscalHost bug validation",
+  "private": true,
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "test:ui": "playwright test --ui",
+    "test:report": "playwright show-report",
+    "install:browsers": "playwright install",
+    "install:deps": "playwright install-deps"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0",
+    "@types/node": "^22.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

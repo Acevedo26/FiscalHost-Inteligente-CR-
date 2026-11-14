@@ -141,12 +141,16 @@ if (app.Environment.IsDevelopment())
   app.UseSwaggerUI();
 }
 
+// Only use HTTPS redirection and HSTS in production
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+    app.UseHsts();
+}
+
 app.UseMiddleware<FiscalHost.Api.CR.Middlewares.GlobalExceptionMiddleware>();
 
 app.UseCors("DevCorsPolicy");
-
-app.UseHttpsRedirection();
-app.UseHsts();
 
 app.UseAuthentication();
 app.UseAuthorization();
