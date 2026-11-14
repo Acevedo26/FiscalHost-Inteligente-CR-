@@ -21,6 +21,16 @@ builder.Services.AddDbContext<AppDbContext>(opt => opt.UseNpgsql(dataSource, o =
 
 builder.Services.Configure<FiscalHost.Api.CR.Models.TaxSettings>(builder.Configuration.GetSection("TaxSettings"));
 
+// Configure HSTS
+builder.Services.AddHsts(options =>
+{
+    options.MaxAge = builder.Environment.IsDevelopment()
+        ? TimeSpan.FromMinutes(5) // Corto para desarrollo
+        : TimeSpan.FromDays(365); // Estándar producción
+    options.IncludeSubDomains = true;
+    options.Preload = !builder.Environment.IsDevelopment();
+});
+
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
@@ -136,6 +146,7 @@ app.UseMiddleware<FiscalHost.Api.CR.Middlewares.GlobalExceptionMiddleware>();
 app.UseCors("DevCorsPolicy");
 
 app.UseHttpsRedirection();
+app.UseHsts();
 
 app.UseAuthentication();
 app.UseAuthorization();

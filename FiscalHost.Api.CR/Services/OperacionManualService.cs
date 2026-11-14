@@ -1,6 +1,7 @@
 using System;
 using System.Text.Json;
 using System.Threading.Tasks;
+using FiscalHost.Api.CR.Exceptions;
 using FiscalHost.Api.CR.Models.DTOs.Operations.Requests;
 using FiscalHost.Api.CR.Models.Entities.Audit;
 using FiscalHost.Api.CR.Models.Entities.Operations;
@@ -171,6 +172,11 @@ public class OperacionManualService(
 
             await repository.SaveChangesAsync();
             return (true, null);
+        }
+        catch (BusinessRuleValidationException)
+        {
+            // No atrapar: dejar que suba al middleware para devolver 422 con detalles (evidenciaUrl, datosExtraidos)
+            throw;
         }
         catch (Exception ex)
         {
