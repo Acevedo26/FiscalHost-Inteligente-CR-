@@ -287,7 +287,7 @@ public class ReconstruccionHistoricaService(
         {
             ReconstruccionId = reconstruccion.ReconstruccionId,
             UsuarioId = reconstruccion.UsuarioId,
-            TotalRegistros = reconstruccion.TotalRegistros,
+            TotalFilas = reconstruccion.TotalRegistros,
             FilasExitosas = reconstruccion.RegistrosExitosos,
             FilasConError = reconstruccion.RegistrosConError,
             Estado = reconstruccion.Estado.ToString(),

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http;
 
 namespace FiscalHost.Api.CR.Models.DTOs.TaxIntelligence.Requests;
