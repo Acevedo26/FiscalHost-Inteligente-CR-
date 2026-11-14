@@ -21,11 +21,27 @@ public class SimulacionFiscalService : ISimulacionFiscalService
         _repository = repository;
     }
 
+    private const decimal LIMITE_MAXIMO_SIMULACION = 10_000_000m;
+
     public async Task<SimulacionFiscalResponseDto> CrearSimulacionAsync(Guid usuarioId, CreateSimulacionFiscalRequest request)
     {
         if (request.Parametros.IngresosEstimados < 0 || request.Parametros.GastosProyectados < 0)
         {
             throw new ArgumentException("Los ingresos y gastos no pueden ser negativos.");
+        }
+
+        if (request.Parametros.IngresosEstimados > LIMITE_MAXIMO_SIMULACION)
+        {
+            throw new ArgumentException(
+                $"Advertencia: Ingresos estimados (₡{request.Parametros.IngresosEstimados:N0}) exceden el límite máximo permitido (₡{LIMITE_MAXIMO_SIMULACION:N0}). " +
+                "Revise los valores ingresados; un incremento superior al 1000% requiere justificación.");
+        }
+
+        if (request.Parametros.GastosProyectados > LIMITE_MAXIMO_SIMULACION)
+        {
+            throw new ArgumentException(
+                $"Advertencia: Gastos proyectados (₡{request.Parametros.GastosProyectados:N0}) exceden el límite máximo permitido (₡{LIMITE_MAXIMO_SIMULACION:N0}). " +
+                "Revise los valores ingresados; un incremento superior al 1000% requiere justificación.");
         }
 
         var resultados = CalcularResultados(request.Parametros);

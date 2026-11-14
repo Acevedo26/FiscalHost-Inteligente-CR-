@@ -1,5 +1,7 @@
+using FiscalHost.Api.CR.Exceptions;
 using FiscalHost.Api.CR.Models.DTOs;
 using FiscalHost.Api.CR.Models.DTOs.Operations.Requests;
+using FiscalHost.Api.CR.Models.Entities.Operations;
 using FiscalHost.Api.CR.Repositories;
 using FiscalHost.Api.CR.Services;
 using NSubstitute;
@@ -19,7 +21,7 @@ public class OperacionManualServiceTests
 
     public OperacionManualServiceTests()
     {
-        _sut = new OperacionManualService(_repository, Substitute.For<IBlobStorageService>(), Substitute.For<IOcrService>());
+        _sut = new OperacionManualService(_repository, _blobStorageService, _ocrService);
     }
 
     [Fact]
@@ -124,5 +126,92 @@ public class OperacionManualServiceTests
             .AddGastoAsync(
                 Arg.Is<FiscalHost.Api.CR.Models.Entities.Operations.Gasto>(
                     gasto => gasto.Descripcion == descripcion));
+    }
+
+    [Fact]
+    public async Task SubirComprobanteGastoAsync_OcrFalla_LanzaBusinessRuleValidationExceptionConDatosExtraidos()
+    {
+        // Arrange
+        var request = new UploadComprobanteRequest
+        {
+            UsuarioId = Guid.NewGuid(),
+            PropiedadId = Guid.NewGuid(),
+            Comprobante = Substitute.For<IFormFile>()
+        };
+        request.Comprobante.Length.Returns(1024);
+        request.Comprobante.FileName.Returns("factura.pdf");
+        request.Comprobante.ContentType.Returns("application/pdf");
+
+        // OCR falla (Exitoso = false) pero devuelve datos parciales
+        var ocrResult = new OcrResult
+        {
+            Exitoso = false,
+            Proveedor = "Proveedor Parcial",
+            NumeroFactura = null,
+            FechaEmision = null,
+            MontoTotal = null,
+            TextoExtraidoRaw = "Texto ilegible..."
+        };
+        _ocrService.ExtractMetadataAsync(Arg.Any<Stream>(), Arg.Any<string>())
+            .Returns(ocrResult);
+
+        _blobStorageService.UploadAsync(Arg.Any<Stream>(), Arg.Any<string>(), Arg.Any<string>())
+            .Returns("uploads/comprobantes/test.pdf");
+
+        // Act & Assert: Debe lanzar BusinessRuleValidationException con detalles del OCR
+        var ex = await Assert.ThrowsAsync<BusinessRuleValidationException>(() =>
+            _sut.SubirComprobanteGastoAsync(request));
+
+        Assert.Equal("El OCR no pudo extraer los datos del comprobante. Complete los campos manualmente.", ex.Message);
+        Assert.NotNull(ex.ErrorDetails);
+        
+        // Verificar que NO se guardó el gasto (porque OCR falló)
+        await _repository.DidNotReceive().AddGastoAsync(Arg.Any<Gasto>());
+    }
+
+    [Fact]
+    public async Task SubirComprobanteGastoAsync_OcrExitoso_GuardaGastoConCreditoFiscal()
+    {
+        // Arrange
+        var request = new UploadComprobanteRequest
+        {
+            UsuarioId = Guid.NewGuid(),
+            PropiedadId = Guid.NewGuid(),
+            Comprobante = Substitute.For<IFormFile>()
+        };
+        request.Comprobante.Length.Returns(1024);
+        request.Comprobante.FileName.Returns("factura.pdf");
+        request.Comprobante.ContentType.Returns("application/pdf");
+
+        var ocrResult = new OcrResult
+        {
+            Exitoso = true,
+            Proveedor = "Proveedor Completo",
+            NumeroFactura = "FAC-123",
+            FechaEmision = DateOnly.FromDateTime(DateTime.UtcNow),
+            MontoTotal = 50000m,
+            TextoExtraidoRaw = "Texto completo..."
+        };
+        _ocrService.ExtractMetadataAsync(Arg.Any<Stream>(), Arg.Any<string>())
+            .Returns(ocrResult);
+
+        _blobStorageService.UploadAsync(Arg.Any<Stream>(), Arg.Any<string>(), Arg.Any<string>())
+            .Returns("uploads/comprobantes/test.pdf");
+
+        _repository.ExisteGastoDuplicadoAsync(Arg.Any<string>(), Arg.Any<string>())
+            .Returns(false);
+
+        // Act
+        var (success, error) = await _sut.SubirComprobanteGastoAsync(request);
+
+        // Assert
+        Assert.True(success);
+        Assert.Null(error);
+        
+        await _repository.Received(1).AddGastoAsync(Arg.Is<Gasto>(g =>
+            g.Proveedor == "Proveedor Completo" &&
+            g.NumeroFactura == "FAC-123" &&
+            g.EsCreditoFiscalValido == true &&
+            g.EstadoOcr == EstadoOcr.PROCESADO));
     }
 }

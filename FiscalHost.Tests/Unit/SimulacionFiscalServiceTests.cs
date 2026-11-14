@@ -107,4 +107,74 @@ public class SimulacionFiscalServiceTests
         Assert.Equal(2, resultado.Simulaciones.Count);
         Assert.Empty(resultado.Advertencias);
     }
+
+    [Fact]
+    public async Task CrearSimulacionAsync_IngresosExcedenLimiteMaximo_LanzaExcepcionConAdvertencia()
+    {
+        // Arrange: límite razonable = 10x ingresos históricos típicos (ej. 10,000,000)
+        var usuarioId = Guid.NewGuid();
+        var request = new CreateSimulacionFiscalRequest
+        {
+            Nombre = "Simulación Excesiva",
+            Parametros = new SimulacionParametrosDto
+            {
+                IngresosEstimados = 15_000_000m, // Excede límite de 10M
+                GastosProyectados = 1_000_000m
+            }
+        };
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() =>
+            _service.CrearSimulacionAsync(usuarioId, request));
+
+        Assert.Contains("límite", ex.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("advertencia", ex.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task CrearSimulacionAsync_GastosExcedenLimiteMaximo_LanzaExcepcionConAdvertencia()
+    {
+        var usuarioId = Guid.NewGuid();
+        var request = new CreateSimulacionFiscalRequest
+        {
+            Nombre = "Simulación Gastos Excesivos",
+            Parametros = new SimulacionParametrosDto
+            {
+                IngresosEstimados = 1_000_000m,
+                GastosProyectados = 15_000_000m // Excede límite de 10M
+            }
+        };
+
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() =>
+            _service.CrearSimulacionAsync(usuarioId, request));
+
+        Assert.Contains("límite", ex.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("advertencia", ex.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task CrearSimulacionAsync_ValoresEnLimite_CreaCorrectamente()
+    {
+        // Arrange: exactamente en el límite (10M)
+        var usuarioId = Guid.NewGuid();
+        var request = new CreateSimulacionFiscalRequest
+        {
+            Nombre = "Simulación En Límite",
+            Parametros = new SimulacionParametrosDto
+            {
+                IngresosEstimados = 10_000_000m,
+                GastosProyectados = 10_000_000m
+            }
+        };
+
+        _mockRepo.Setup(r => r.CreateAsync(It.IsAny<SimulacionFiscal>()))
+                 .ReturnsAsync((SimulacionFiscal s) => s);
+
+        // Act
+        var resultado = await _service.CrearSimulacionAsync(usuarioId, request);
+
+        // Assert
+        Assert.NotNull(resultado);
+        Assert.Equal("Simulación En Límite", resultado.Nombre);
+    }
 }
