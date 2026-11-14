@@ -4,7 +4,7 @@
  */
 
 export const TEST_USER = {
-  email: 'anfitrion.qa1@test.com',
+  email: 'e2e.test@test.com',
   password: 'Test123!',
 };
 
@@ -39,8 +39,8 @@ export const VALID_RESERVA = {
   fecha: '2026-06-15',
   concepto: 'Reserva Directa QA Test',
   monto: '150000',
-  fuente: 'AIRBNB',
-  clasificacion: 'GRAVADO_13',
+  fuente: 'Airbnb',
+  clasificacion: 'Gravado 13%',
 };
 
 export const VALID_GASTO = {
@@ -104,8 +104,9 @@ export const SELECTORS = {
       fechaInput: 'input[type="date"]',
       conceptoInput: 'input[placeholder*="Reserva"]',
       montoInput: 'input[type="number"]',
-      fuenteSelect: 'select[name="fuente"]',
-      clasificacionSelect: 'select[name="clasificacion"]',
+      // Custom Select components (not native select)
+      fuenteSelect: '.select-container:has(.select-label:has-text("Fuente")) .select-trigger',
+      clasificacionSelect: '.select-container:has(.select-label:has-text("Clasificación")) .select-trigger',
       proveedorInput: 'input[placeholder*="proveedor"]',
       guardarBtn: 'button:has-text("Guardar")',
       cancelarBtn: 'button:has-text("Cancelar")',
@@ -201,7 +202,7 @@ export const SELECTORS = {
 
   // Dashboard
   dashboard: {
-    pageTitle: 'h1:has-text("Dashboard")',
+    pageTitle: 'h1:has-text("Hola")',
     cards: {
       ingresosBrutos: '.dashboard-card:has-text("Ingresos Brutos")',
       ivaRetenido: '.dashboard-card:has-text("IVA Retenido")',
@@ -212,7 +213,7 @@ export const SELECTORS = {
 
   // Global / Common
   global: {
-    modal: '.modal',
+    modal: '.modal-container',
     modalTitle: '.modal-title',
     modalClose: '.modal-close, button[aria-label="Cerrar"]',
     sweetAlert: '.swal2-popup',

@@ -12,7 +12,7 @@ export default defineConfig({
     ['json', { outputFile: 'test-results/e2e-results.json' }]
   ],
   use: {
-    baseURL: process.env.FRONTEND_URL || 'http://localhost:5173',
+    baseURL: process.env.FRONTEND_URL || 'http://localhost:59357',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -34,12 +34,13 @@ export default defineConfig({
     // },
   ],
   webServer: {
-    command: 'cd ../Frontend-Fiscalhost-Inteligente-CR && npm run dev',
-    url: 'http://localhost:5173',
+    command: 'npm run dev',
+    cwd: '../Frontend-Fiscalhost-Inteligente-CR',
+    url: 'http://localhost:59357',
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
     env: {
-      VITE_API_URL: process.env.API_URL || 'http://localhost:5062',
+      VITE_API_URL: process.env.API_URL || 'http://localhost:5062/api',
     },
   },
   expect: {
