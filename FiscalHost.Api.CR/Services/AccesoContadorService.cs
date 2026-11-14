@@ -173,15 +173,35 @@ public class AccesoContadorService(
     public async Task<int> ProcesarExpiracionesAsync()
     {
         var ahora = DateTimeOffset.UtcNow;
-        var porVencer = await repository.GetPorVencerAsync(ahora, ahora.AddDays(3));
 
-        foreach (var acceso in porVencer)
+        // 1. Avisar a 7 días antes de la expiración
+        var porVencer7Dias = await repository.GetPorVencerAsync(ahora, ahora.AddDays(7));
+        foreach (var acceso in porVencer7Dias)
         {
-            await notificaciones.NotificarAsync(
-                acceso.AnfitrionId.ToString(),
-                $"El acceso del contador {acceso.CorreoContador} vence pronto.");
+            // Solo notificar si falta exactamente 7 días (con margen de horas)
+            var diasRestantes = (acceso.FechaExpiracion!.Value - ahora).TotalDays;
+            if (diasRestantes <= 7 && diasRestantes > 6)
+            {
+                await notificaciones.NotificarAsync(
+                    acceso.AnfitrionId.ToString(),
+                    $"Aviso: El acceso del contador {acceso.CorreoContador} vence en 7 días ({acceso.FechaExpiracion.Value:dd/MM/yyyy}).");
+            }
         }
 
+        // 2. Avisar a 1 día antes de la expiración
+        var porVencer1Dia = await repository.GetPorVencerAsync(ahora, ahora.AddDays(1));
+        foreach (var acceso in porVencer1Dia)
+        {
+            var diasRestantes = (acceso.FechaExpiracion!.Value - ahora).TotalDays;
+            if (diasRestantes <= 1 && diasRestantes > 0)
+            {
+                await notificaciones.NotificarAsync(
+                    acceso.AnfitrionId.ToString(),
+                    $"Aviso URGENTE: El acceso del contador {acceso.CorreoContador} vence mañana ({acceso.FechaExpiracion.Value:dd/MM/yyyy}).");
+            }
+        }
+
+        // 3. Procesar accesos expirados (cambiar estado a EXPIRADO)
         var expirados = await repository.GetExpiradosAsync(ahora);
 
         foreach (var acceso in expirados)
