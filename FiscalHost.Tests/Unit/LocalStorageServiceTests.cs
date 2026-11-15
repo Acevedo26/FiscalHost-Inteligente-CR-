@@ -108,6 +108,40 @@ public class LocalStorageServiceTests
         await Assert.ThrowsAsync<InvalidOperationException>(() => serviceSinClave.UploadAsync(stream, "test.pdf", "application/pdf"));
     }
 
+    [Fact]
+    public async Task UploadAsync_DosArchivosMismoContenido_TienenIVsDistintos()
+    {
+        // Arrange: mismo contenido, dos uploads
+        var contenido = "Contenido idéntico para probar IV único";
+        var stream1 = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(contenido));
+        var stream2 = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(contenido));
+        
+        // Act
+        var url1 = await _service.UploadAsync(stream1, "a.pdf", "application/pdf");
+        var url2 = await _service.UploadAsync(stream2, "b.pdf", "application/pdf");
+        
+        // Assert: URLs distintas (Guid en nombre)
+        Assert.NotEqual(url1, url2);
+        
+        // Leer IVs de ambos archivos (primeros 16 bytes)
+        var uploadsDir = Path.Combine(_testBasePath, "uploads", "comprobantes");
+        var file1 = Path.Combine(uploadsDir, Path.GetFileName(url1));
+        var file2 = Path.Combine(uploadsDir, Path.GetFileName(url2));
+        
+        var iv1 = (await File.ReadAllBytesAsync(file1)).Take(16).ToArray();
+        var iv2 = (await File.ReadAllBytesAsync(file2)).Take(16).ToArray();
+        
+        // IVs deben ser distintos (aleatorios criptográficamente)
+        Assert.NotEqual(iv1, iv2);
+        
+        // Pero ambos deben descifrar al mismo contenido original
+        var clave = "clave-secreta-minimo-32-caracteres!!";
+        var descifrado1 = DescifrarArchivo(file1, clave);
+        var descifrado2 = DescifrarArchivo(file2, clave);
+        Assert.Equal(contenido, descifrado1);
+        Assert.Equal(contenido, descifrado2);
+    }
+
     private static string DescifrarArchivo(string filePath, string clave)
     {
         var bytes = File.ReadAllBytes(filePath);
