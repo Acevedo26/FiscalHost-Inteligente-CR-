@@ -1,6 +1,7 @@
 using FiscalHost.Api.CR.Extensions;
 using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using FiscalHost.Api.CR.Services;
 using FiscalHost.Api.CR.Models.DTOs.TaxIntelligence.Requests;
@@ -8,6 +9,7 @@ namespace FiscalHost.Api.CR.Controllers;
 
 [ApiController]
 [Route("api/obligaciones")]
+[Authorize]
 public class ObligacionesTributariasController(
     IObligacionTributariaService obligacionService) : ControllerBase
 {
