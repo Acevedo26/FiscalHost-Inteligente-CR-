@@ -11,7 +11,4 @@ public class ReconstruccionHistoricaRequest
 {
     [Required]
     public IFormFile Archivo { get; set; } = null!;
-
-    [JsonIgnore]
-    public Guid UsuarioId { get; set; }
 }

@@ -13,11 +13,11 @@ public class SancionAutoliquidacionController(
 	[HttpPost("calcular")]
 	public async Task<IActionResult> Calcular([FromBody] CalcularSancionRequest request)
 	{
-        request.UsuarioId = User.GetUsuarioId();
 		if (!ModelState.IsValid)
 			return BadRequest(ModelState);
 
-		var (success, error, data) = await service.CalcularAsync(request);
+		var usuarioId = User.GetUsuarioId();
+		var (success, error, data) = await service.CalcularAsync(usuarioId, request);
 
 		return success
 			? Ok(data)

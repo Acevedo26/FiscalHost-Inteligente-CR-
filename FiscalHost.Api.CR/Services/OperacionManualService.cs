@@ -13,12 +13,12 @@ namespace FiscalHost.Api.CR.Services;
 
 public interface IOperacionManualService
 {
-    Task<(bool success, string? error)> RegistrarReservaAsync(ReservaDirectaRequest request);
+    Task<(bool success, string? error)> RegistrarReservaAsync(string anfitrionId, CreateReservaRequest request);
 
-    Task<(bool success, string? error)> RegistrarGastoAsync(GastoOperativoRequest request);
+    Task<(bool success, string? error)> RegistrarGastoAsync(Guid usuarioId, GastoOperativoRequest request);
 
     // Nuevos métodos de la HU-007
-    Task<(bool success, string? error)> SubirComprobanteGastoAsync(UploadComprobanteRequest request);
+    Task<(bool success, string? error)> SubirComprobanteGastoAsync(Guid usuarioId, UploadComprobanteRequest request);
     Task<(bool success, string? error)> ActualizarGastoAsync(Guid id, UpdateGastoRequest request);
     Task<(bool success, string? error)> EliminarGastoAsync(Guid id, DeleteGastoRequest request);
     Task<(bool success, string? error)> ActualizarReservaAsync(string id, UpdateReservaRequest request);
@@ -33,17 +33,20 @@ public class OperacionManualService(
     IOcrService ocrService)
     : IOperacionManualService
 {
-    public async Task<(bool success, string? error)> RegistrarReservaAsync(ReservaDirectaRequest request)
+    public async Task<(bool success, string? error)> RegistrarReservaAsync(string anfitrionId, CreateReservaRequest request)
     {
-        if (request.Monto <= 0) return (false, "El monto debe ser mayor que cero.");
-        if (request.FechaReserva > DateTime.UtcNow) return (false, "La fecha de reserva no puede ser futura.");
+        if (request.MontoBruto <= 0) return (false, "El monto debe ser mayor que cero.");
+        if (request.FechaInicio > DateTime.UtcNow) return (false, "La fecha de reserva no puede ser futura.");
+
+        // Calculate monto in colones
+        var montoColones = request.MontoBruto * request.TipoCambio;
 
         var reserva = new ReservaDirecta
         {
-            AnfitrionId = request.AnfitrionId,
-            FechaReserva = request.FechaReserva,
-            Monto = request.Monto,
-            Huesped = request.Huesped
+            AnfitrionId = anfitrionId,
+            FechaReserva = request.FechaInicio,
+            Monto = montoColones,
+            Huesped = request.NombreHuesped ?? "Huésped General"
         };
 
         await repository.AddReservaAsync(reserva);
@@ -51,22 +54,26 @@ public class OperacionManualService(
         return (true, null);
     }
 
-    public async Task<(bool success, string? error)> RegistrarGastoAsync(GastoOperativoRequest request)
+    public async Task<(bool success, string? error)> RegistrarGastoAsync(Guid usuarioId, GastoOperativoRequest request)
     {
         if (request.MontoTotal <= 0) return (false, "El monto debe ser mayor que cero.");
         if (request.FechaEmision > DateOnly.FromDateTime(DateTime.UtcNow)) return (false, "La fecha del gasto no puede ser futura.");
 
+        // Calcular IVA y monto neto si no vienen proporcionados (IVA 13% Costa Rica)
+        decimal montoNeto = request.MontoNeto ?? Math.Round(request.MontoTotal / 1.13m, 2, MidpointRounding.AwayFromZero);
+        decimal montoIvaSoportado = request.MontoIvaSoportado ?? (request.MontoTotal - montoNeto);
+
         var gasto = new Gasto
         {
-            UsuarioId = request.UsuarioId,
+            UsuarioId = usuarioId,
             PropiedadId = request.PropiedadId,
             Proveedor = request.Proveedor,
             NumeroFactura = request.NumeroFactura,
             ClaveNumericaHacienda = request.ClaveNumericaHacienda,
             Descripcion = request.Descripcion,
             MontoTotal = request.MontoTotal,
-            MontoIvaSoportado = request.MontoIvaSoportado,
-            MontoNeto = request.MontoNeto,
+            MontoIvaSoportado = montoIvaSoportado,
+            MontoNeto = montoNeto,
             Moneda = request.Moneda,
             TipoGasto = request.TipoGasto,
             EsDeducibleRenta = request.EsDeducibleRenta,
@@ -86,7 +93,7 @@ public class OperacionManualService(
     // ========================================================================
     // Implementación de HU-007: Subir Comprobante (Azure Blob + OCR)
     // ========================================================================
-    public async Task<(bool success, string? error)> SubirComprobanteGastoAsync(UploadComprobanteRequest request)
+    public async Task<(bool success, string? error)> SubirComprobanteGastoAsync(Guid usuarioId, UploadComprobanteRequest request)
     {
         if (request.Comprobante == null || request.Comprobante.Length == 0)
         {
@@ -139,7 +146,7 @@ public class OperacionManualService(
 
             var gasto = new Gasto
             {
-                UsuarioId = request.UsuarioId,
+                UsuarioId = usuarioId,
                 PropiedadId = request.PropiedadId,
                 Proveedor = ocrResult.Proveedor ?? "PENDIENTE",
                 NumeroFactura = ocrResult.NumeroFactura ?? "PENDIENTE",
@@ -164,7 +171,7 @@ public class OperacionManualService(
             // Registrar Auditoría Inicial
             await repository.AddAuditoriaAsync(new AuditoriaOperacion
             {
-                UsuarioId = request.UsuarioId,
+                UsuarioId = usuarioId,
                 Operacion = OperacionAuditoria.INSERT,
                 TablaAfectada = "gasto",
                 NewValues = JsonSerializer.Serialize(new { gasto.Proveedor, gasto.NumeroFactura, gasto.EstadoOcr })
@@ -204,13 +211,17 @@ public class OperacionManualService(
             gasto.MontoTotal, gasto.Proveedor, gasto.NumeroFactura, gasto.EsCreditoFiscalValido
         });
 
+        // Calcular IVA y monto neto si no vienen proporcionados (IVA 13% Costa Rica)
+        decimal montoNeto = request.MontoNeto ?? Math.Round(request.MontoTotal / 1.13m, 2, MidpointRounding.AwayFromZero);
+        decimal montoIvaSoportado = request.MontoIvaSoportado ?? (request.MontoTotal - montoNeto);
+
         // Aplicamos los cambios
         gasto.Proveedor = request.Proveedor;
         gasto.NumeroFactura = request.NumeroFactura;
         gasto.FechaEmision = request.FechaEmision;
         gasto.MontoTotal = request.MontoTotal;
-        gasto.MontoIvaSoportado = request.MontoIvaSoportado;
-        gasto.MontoNeto = request.MontoNeto;
+        gasto.MontoIvaSoportado = montoIvaSoportado;
+        gasto.MontoNeto = montoNeto;
         gasto.Moneda = request.Moneda;
         gasto.TipoGasto = request.TipoGasto;
         gasto.EsDeducibleRenta = request.EsDeducibleRenta;

@@ -1,7 +1,6 @@
 using FiscalHost.Api.CR.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using FiscalHost.Api.CR.Models.DTOs.TaxIntelligence.Requests;
 using FiscalHost.Api.CR.Models.DTOs.TaxIntelligence.Responses;
@@ -12,7 +11,6 @@ using Microsoft.AspNetCore.Mvc;
 namespace FiscalHost.Api.CR.Controllers;
 
 [ApiController]
-[Route("api/taxintelligence/[controller]")]
 [Route("api/simulador")]
 [Authorize]
 public class SimuladorFiscalController : ControllerBase
@@ -24,20 +22,12 @@ public class SimuladorFiscalController : ControllerBase
         _simulacionService = simulacionService;
     }
 
-    private Guid GetUsuarioId()
-    {
-        var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (Guid.TryParse(idClaim, out Guid id))
-            return id;
-        throw new UnauthorizedAccessException("Usuario no autorizado.");
-    }
-
     [HttpPost]
     public async Task<ActionResult<SimulacionFiscalResponseDto>> CrearSimulacion([FromBody] CreateSimulacionFiscalRequest request)
     {
         try
         {
-            var usuarioId = GetUsuarioId();
+            var usuarioId = User.GetUsuarioId();
             var response = await _simulacionService.CrearSimulacionAsync(usuarioId, request);
             return CreatedAtAction(nameof(ObtenerSimulacion), new { id = response.SimulacionId }, response);
         }
@@ -52,7 +42,7 @@ public class SimuladorFiscalController : ControllerBase
     {
         try
         {
-            var usuarioId = GetUsuarioId();
+            var usuarioId = User.GetUsuarioId();
             var response = await _simulacionService.ObtenerSimulacionAsync(id, usuarioId);
             return Ok(response);
         }
@@ -65,7 +55,7 @@ public class SimuladorFiscalController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<SimulacionFiscalResponseDto>>> ListarSimulaciones()
     {
-        var usuarioId = GetUsuarioId();
+        var usuarioId = User.GetUsuarioId();
         var response = await _simulacionService.ListarSimulacionesAsync(usuarioId);
         return Ok(response);
     }
@@ -75,7 +65,7 @@ public class SimuladorFiscalController : ControllerBase
     {
         try
         {
-            var usuarioId = GetUsuarioId();
+            var usuarioId = User.GetUsuarioId();
             var response = await _simulacionService.CompararSimulacionesAsync(usuarioId, ids);
             return Ok(response);
         }
@@ -90,7 +80,7 @@ public class SimuladorFiscalController : ControllerBase
     {
         try
         {
-            var usuarioId = GetUsuarioId();
+            var usuarioId = User.GetUsuarioId();
             var csvBytes = await _simulacionService.ExportarSimulacionCsvAsync(id, usuarioId);
             return File(csvBytes, "text/csv", $"Simulacion_{id}.csv");
         }
@@ -105,7 +95,7 @@ public class SimuladorFiscalController : ControllerBase
     {
         try
         {
-            var usuarioId = GetUsuarioId();
+            var usuarioId = User.GetUsuarioId();
             await _simulacionService.EliminarSimulacionAsync(id, usuarioId);
             return NoContent();
         }

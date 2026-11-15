@@ -11,13 +11,13 @@ namespace FiscalHost.Api.CR.Services;
 public interface ICalculoRentaCapitalService
 {
 	Task<(bool success, string? error, RentaCapitalResponse? data)> CalcularAsync(
-		CalcularRentaCapitalRequest request);
+		Guid usuarioId, CalcularRentaCapitalRequest request);
 
 	Task<(bool success, string? error, SimulacionRegimenResponse? data)> SimularAsync(
-		SimularRegimenRequest request);
+		Guid usuarioId, SimularRegimenRequest request);
 
 	Task<(bool success, string? error, string? regimenActual)> CambiarRegimenAsync(
-		CambiarRegimenTributarioRequest request);
+		Guid usuarioId, CambiarRegimenTributarioRequest request);
 }
 
 public class CalculoRentaCapitalService(
@@ -25,9 +25,9 @@ public class CalculoRentaCapitalService(
 	: ICalculoRentaCapitalService
 {
 	public async Task<(bool success, string? error, RentaCapitalResponse? data)> CalcularAsync(
-		CalcularRentaCapitalRequest request)
+		Guid usuarioId, CalcularRentaCapitalRequest request)
 	{
-		var perfil = await repository.GetPerfilTributarioAsync(request.UsuarioId);
+		var perfil = await repository.GetPerfilTributarioAsync(usuarioId);
 		if (perfil is null)
 			return (false, "No existe un perfil tributario registrado para este usuario.", null);
 
@@ -37,7 +37,7 @@ public class CalculoRentaCapitalService(
 				$"No existe una configuracion de periodo fiscal para {request.Mes:00}/{request.Anio}. Debe registrarse primero.",
 				null);
 
-		var reservas = await repository.GetReservasDelPeriodoAsync(request.UsuarioId, request.Anio, request.Mes);
+		var reservas = await repository.GetReservasDelPeriodoAsync(usuarioId, request.Anio, request.Mes);
 		if (reservas.Count == 0)
 			return (false, "No hay ingresos registrados para el periodo seleccionado.", null);
 
@@ -46,7 +46,7 @@ public class CalculoRentaCapitalService(
 		decimal deduccion;
 		if (perfil.RegimenTributario == RegimenTributario.UTILIDADES)
 		{
-			var gastosValidos = await ObtenerGastosDeduciblesValidosAsync(request.UsuarioId, request.Anio, request.Mes);
+			var gastosValidos = await ObtenerGastosDeduciblesValidosAsync(usuarioId, request.Anio, request.Mes);
 			if (gastosValidos.Count == 0)
 				return (false, "Debe adjuntar los comprobantes de gastos para justificar el cambio de regimen.", null);
 
@@ -62,9 +62,9 @@ public class CalculoRentaCapitalService(
 		var rentaNeta = Math.Max(rentaBruta - deduccion, 0m);
 		var impuestoRenta = rentaNeta * (periodo.TarifaRentaCapital / 100m);
 
-		var calculoExistente = await repository.GetCalculoExistenteAsync(request.UsuarioId, periodo.PeriodoId, TipoFormulario.D125);
+		var calculoExistente = await repository.GetCalculoExistenteAsync(usuarioId, periodo.PeriodoId, TipoFormulario.D125);
 		var calculo = calculoExistente
-					  ?? new CalculoFiscal { CalculoId = Guid.NewGuid(), UsuarioId = request.UsuarioId, PeriodoId = periodo.PeriodoId, TipoFormulario = TipoFormulario.D125 };
+					  ?? new CalculoFiscal { CalculoId = Guid.NewGuid(), UsuarioId = usuarioId, PeriodoId = periodo.PeriodoId, TipoFormulario = TipoFormulario.D125 };
 
 		if (calculoExistente is null)
 			await repository.AddCalculoAsync(calculo);
@@ -108,7 +108,7 @@ public class CalculoRentaCapitalService(
 	}
 
 	public async Task<(bool success, string? error, SimulacionRegimenResponse? data)> SimularAsync(
-		SimularRegimenRequest request)
+		Guid usuarioId, SimularRegimenRequest request)
 	{
 		var periodo = await repository.GetPeriodoFiscalAsync(request.Anio, request.Mes, TipoFormulario.D125);
 		if (periodo is null)
@@ -116,7 +116,7 @@ public class CalculoRentaCapitalService(
 				$"No existe una configuracion de periodo fiscal para {request.Mes:00}/{request.Anio}. Debe registrarse primero.",
 				null);
 
-		var reservas = await repository.GetReservasDelPeriodoAsync(request.UsuarioId, request.Anio, request.Mes);
+		var reservas = await repository.GetReservasDelPeriodoAsync(usuarioId, request.Anio, request.Mes);
 		if (reservas.Count == 0)
 			return (false, "No hay ingresos registrados para el periodo seleccionado.", null);
 
@@ -126,7 +126,7 @@ public class CalculoRentaCapitalService(
 		var rentaNetaCapital = Math.Max(rentaBruta - deduccionCapital, 0m);
 		var impuestoCapital = rentaNetaCapital * (periodo.TarifaRentaCapital / 100m);
 
-		var gastosValidos = await ObtenerGastosDeduciblesValidosAsync(request.UsuarioId, request.Anio, request.Mes);
+		var gastosValidos = await ObtenerGastosDeduciblesValidosAsync(usuarioId, request.Anio, request.Mes);
 		var tieneComprobantesValidos = gastosValidos.Count > 0;
 		var deduccionUtilidades = gastosValidos.Sum(g => g.MontoNeto ?? g.MontoColones);
 		var rentaNetaUtilidades = Math.Max(rentaBruta - deduccionUtilidades, 0m);
@@ -179,9 +179,9 @@ public class CalculoRentaCapitalService(
 	}
 
 	public async Task<(bool success, string? error, string? regimenActual)> CambiarRegimenAsync(
-		CambiarRegimenTributarioRequest request)
+		Guid usuarioId, CambiarRegimenTributarioRequest request)
 	{
-		var perfil = await repository.GetPerfilTributarioAsync(request.UsuarioId);
+		var perfil = await repository.GetPerfilTributarioAsync(usuarioId);
 		if (perfil is null)
 			return (false, "No existe un perfil tributario registrado para este usuario.", null);
 
@@ -190,7 +190,7 @@ public class CalculoRentaCapitalService(
 
 		if (request.NuevoRegimen == RegimenTributario.UTILIDADES)
 		{
-			var gastosValidos = await ObtenerGastosDeduciblesValidosAsync(request.UsuarioId, request.Anio, request.Mes);
+			var gastosValidos = await ObtenerGastosDeduciblesValidosAsync(usuarioId, request.Anio, request.Mes);
 			if (gastosValidos.Count == 0)
 				return (false, "Debe adjuntar los comprobantes de gastos para justificar el cambio de regimen.", null);
 		}
@@ -201,7 +201,7 @@ public class CalculoRentaCapitalService(
 		await repository.AddAuditoriaCambioRegimenAsync(new AuditoriaOperacion
 		{
 			AuditId = Guid.NewGuid(),
-			UsuarioId = request.UsuarioId,
+			UsuarioId = usuarioId,
 			Operacion = OperacionAuditoria.CAMBIO_REGIMEN,
 			TablaAfectada = nameof(Models.Entities.Identity.PerfilTributario),
 			RegistroId = perfil.PerfilId,

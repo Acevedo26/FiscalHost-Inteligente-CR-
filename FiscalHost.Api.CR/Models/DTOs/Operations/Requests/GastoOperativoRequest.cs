@@ -14,9 +14,6 @@ namespace FiscalHost.Api.CR.Models.DTOs.Operations.Requests;
 
 public class GastoOperativoRequest
 {
-    [JsonIgnore]
-    public Guid UsuarioId { get; set; }
-
     public Guid? PropiedadId { get; set; }
 
     [Required]
@@ -37,9 +34,14 @@ public class GastoOperativoRequest
     [Required]
     public decimal MontoTotal { get; set; }
 
-    [Required]
-    public decimal MontoIvaSoportado { get; set; }
+    /// <summary>
+    /// IVA soportado (13%). Si no se proporciona, se calcula automáticamente: MontoTotal - (MontoTotal / 1.13).
+    /// </summary>
+    public decimal? MontoIvaSoportado { get; set; }
 
+    /// <summary>
+    /// Monto neto (sin IVA). Si no se proporciona, se calcula automáticamente: MontoTotal / 1.13.
+    /// </summary>
     public decimal? MontoNeto { get; set; }
 
     [Required]

@@ -130,16 +130,15 @@ builder.Services.AddSwaggerGen(c =>
             Array.Empty<string>()
         }
     });
+    c.DescribeAllParametersInCamelCase();
+    c.UseInlineDefinitionsForEnums();
 });
 
 var app = builder.Build();
 
 //Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-  app.UseSwagger();
-  app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
 // Only use HTTPS redirection and HSTS in production
 if (!app.Environment.IsDevelopment())

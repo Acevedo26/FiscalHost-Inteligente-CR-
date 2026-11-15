@@ -8,7 +8,7 @@ namespace FiscalHost.Api.CR.Services;
 /// </summary>
 public interface IReconstruccionHistoricaService
 {
-    Task<ReconstruccionHistoricaResponse> ReconstruirAsync(ReconstruccionHistoricaRequest request);
-    Task<DetectarPeriodosFaltantesResponse> DetectarPeriodosFaltantesAsync(DetectarPeriodosFaltantesRequest request);
+    Task<ReconstruccionHistoricaResponse> ReconstruirAsync(Guid usuarioId, ReconstruccionHistoricaRequest request);
+    Task<DetectarPeriodosFaltantesResponse> DetectarPeriodosFaltantesAsync(Guid usuarioId, DetectarPeriodosFaltantesRequest request);
     Task<string> ObtenerReporteErroresAsync(Guid reconstruccionId);
 }

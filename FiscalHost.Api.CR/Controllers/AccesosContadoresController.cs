@@ -14,11 +14,11 @@ public class AccesosContadoresController(
     [HttpPost("invitar")]
     public async Task<IActionResult> Invitar([FromBody] InvitarContadorRequest request)
     {
-        request.AnfitrionId = User.GetUsuarioId();
+        var anfitrionId = User.GetUsuarioId();
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var (success, error, data) = await service.InvitarAsync(request);
+        var (success, error, data) = await service.InvitarAsync(anfitrionId, request);
 
         return success
             ? Ok(data)
@@ -61,7 +61,7 @@ public class AccesosContadoresController(
         Guid accesoId,
         [FromBody] RevocarAccesoContadorRequest request)
     {
-        request.AnfitrionId = User.GetUsuarioId();
+        var anfitrionId = User.GetUsuarioId();
         if (string.IsNullOrWhiteSpace(request.Justificacion))
         {
             request.Justificacion = "Revocación solicitada por el usuario anfitrión.";
@@ -71,7 +71,7 @@ public class AccesosContadoresController(
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var (success, error) = await service.RevocarAsync(accesoId, request);
+        var (success, error) = await service.RevocarAsync(accesoId, anfitrionId, request);
 
         return success
             ? Ok(new { mensaje = "Acceso revocado correctamente." })

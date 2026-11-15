@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using FiscalHost.Api.CR.Services;
 using FiscalHost.Api.CR.Models.DTOs.Dashboard;
 using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
 
 namespace FiscalHost.Api.CR.Controllers;
 
@@ -26,11 +25,7 @@ public class DashboardController : ControllerBase
         [FromQuery] DateTime fechaInicio, 
         [FromQuery] DateTime fechaFin)
     {
-        var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (!Guid.TryParse(userIdString, out var usuarioId))
-        {
-            return Unauthorized("Usuario no autenticado o token inválido.");
-        }
+        var usuarioId = User.GetUsuarioId();
 
         if (fechaInicio > fechaFin)
         {

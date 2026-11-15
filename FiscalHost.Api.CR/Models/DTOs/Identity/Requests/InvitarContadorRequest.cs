@@ -5,9 +5,6 @@ namespace FiscalHost.Api.CR.Models.DTOs.Identity.Requests;
 
 public class InvitarContadorRequest
 {
-    [JsonIgnore]
-    public Guid AnfitrionId { get; set; }
-
     [Required]
     [EmailAddress]
     public string CorreoContador { get; set; } = string.Empty;

@@ -23,10 +23,10 @@ public class ConfiguracionTributariaController(IConfiguracionTributariaService s
     [HttpPost]
     public async Task<IActionResult> GuardarConfiguracion([FromBody] ConfiguracionTributariaRequest request)
     {
-        request.AnfitrionId = User.GetUsuarioId().ToString();
+        var anfitrionId = User.GetUsuarioId().ToString();
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
-        var (success, error, data) = await service.GuardarConfiguracionAsync(request);
+        var (success, error, data) = await service.GuardarConfiguracionAsync(anfitrionId, request);
 
         if (!success) return UnprocessableEntity(new { mensaje = error });
 

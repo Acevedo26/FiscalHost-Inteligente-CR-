@@ -24,7 +24,7 @@ public class ReconstruccionHistoricaService(
         "IngresosExentos", "GastosDeducibles", "Retenciones", "CreditoFiscal"
     ];
 
-    public async Task<ReconstruccionHistoricaResponse> ReconstruirAsync(ReconstruccionHistoricaRequest request)
+    public async Task<ReconstruccionHistoricaResponse> ReconstruirAsync(Guid usuarioId, ReconstruccionHistoricaRequest request)
     {
         if (request.Archivo == null || request.Archivo.Length == 0)
             throw new Exception("El archivo está vacío o no fue enviado.");
@@ -35,7 +35,7 @@ public class ReconstruccionHistoricaService(
         var reconstruccion = new ReconstruccionHistorica
         {
             ReconstruccionId = Guid.NewGuid(),
-            UsuarioId = request.UsuarioId,
+            UsuarioId = usuarioId,
             NombreArchivoOriginal = request.Archivo.FileName,
             TamanioBytes = request.Archivo.Length,
             Estado = EstadoImportacion.PROCESANDO,
@@ -176,7 +176,7 @@ public class ReconstruccionHistoricaService(
             var calculo = new CalculoFiscal
             {
                 CalculoId = calculoId,
-                UsuarioId = request.UsuarioId,
+                UsuarioId = usuarioId,
                 PeriodoId = periodo.PeriodoId,
                 TipoFormulario = tipoFormulario,
                 Estado = EstadoDeclaracion.CALCULADO,
@@ -227,7 +227,7 @@ public class ReconstruccionHistoricaService(
             var obligacion = new ObligacionTributaria
             {
                 ObligacionId = obligacionId,
-                UsuarioId = request.UsuarioId,
+                UsuarioId = usuarioId,
                 CalculoId = calculoId,
                 PeriodoId = periodo.PeriodoId,
                 TipoFormulario = tipoFormulario,
@@ -296,7 +296,7 @@ public class ReconstruccionHistoricaService(
         };
     }
 
-    public async Task<DetectarPeriodosFaltantesResponse> DetectarPeriodosFaltantesAsync(DetectarPeriodosFaltantesRequest request)
+    public async Task<DetectarPeriodosFaltantesResponse> DetectarPeriodosFaltantesAsync(Guid usuarioId, DetectarPeriodosFaltantesRequest request)
     {
         var periodosExistentes = await periodoRepo.GetByAnioRangoTipoAsync(request.AnioInicio, request.AnioFin, request.TipoFormulario);
         var existentesSet = new HashSet<(short Anio, short Mes)>(periodosExistentes.Select(p => (p.Anio, p.Mes)));
@@ -324,7 +324,7 @@ public class ReconstruccionHistoricaService(
 
         return new DetectarPeriodosFaltantesResponse
         {
-            UsuarioId = request.UsuarioId,
+            UsuarioId = usuarioId,
             AnioInicio = request.AnioInicio,
             AnioFin = request.AnioFin,
             TipoFormulario = request.TipoFormulario,

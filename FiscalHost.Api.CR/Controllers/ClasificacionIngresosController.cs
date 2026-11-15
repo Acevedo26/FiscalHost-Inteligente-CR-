@@ -14,11 +14,11 @@ public class ClasificacionIngresosController(
     public async Task<IActionResult> Clasificar(
         [FromBody] ClasificarIngresoRequest request)
     {
-        request.AnfitrionId = User.GetUsuarioId().ToString();
+        var anfitrionId = User.GetUsuarioId().ToString();
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var (success, error, data) = await service.ClasificarAsync(request);
+        var (success, error, data) = await service.ClasificarAsync(anfitrionId, request);
 
         return success
             ? Ok(data)
@@ -30,10 +30,11 @@ public class ClasificacionIngresosController(
         int id,
         [FromBody] ReclasificacionIngresoRequest request)
     {
+        var usuarioId = User.GetUsuarioId();
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var (success, error, data) = await service.ReclasificarAsync(id, request);
+        var (success, error, data) = await service.ReclasificarAsync(id, usuarioId, request);
 
         return success
             ? Ok(data)

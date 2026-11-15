@@ -9,10 +9,11 @@ namespace FiscalHost.Api.CR.Services;
 public interface IClasificacionIngresoService
 {
     Task<(bool success, string? error, ClasificacionIngresoResponse? data)> ClasificarAsync(
-        ClasificarIngresoRequest request);
+        string anfitrionId, ClasificarIngresoRequest request);
 
     Task<(bool success, string? error, ClasificacionIngresoResponse? data)> ReclasificarAsync(
         int id,
+        Guid usuarioId,
         ReclasificacionIngresoRequest request);
 
     Task<ClasificacionIngresoResponse?> GetByIdAsync(int id);
@@ -28,7 +29,7 @@ public class ClasificacionIngresoService(
     private const decimal TarifaRetencionExtranjera = 0.15m;
 
     public async Task<(bool success, string? error, ClasificacionIngresoResponse? data)> ClasificarAsync(
-        ClasificarIngresoRequest request)
+        string anfitrionId, ClasificarIngresoRequest request)
     {
         var error = ValidarIngreso(request.FechaEntrada, request.FechaSalida, request.MontoBruto);
         if (error is not null)
@@ -39,7 +40,7 @@ public class ClasificacionIngresoService(
 
         var clasificacion = new ClasificacionIngreso
         {
-            AnfitrionId = request.AnfitrionId,
+            AnfitrionId = anfitrionId,
             FechaEntrada = request.FechaEntrada,
             FechaSalida = request.FechaSalida,
             DiasEstancia = diasEstancia,
@@ -60,6 +61,7 @@ public class ClasificacionIngresoService(
 
     public async Task<(bool success, string? error, ClasificacionIngresoResponse? data)> ReclasificarAsync(
         int id,
+        Guid usuarioId,
         ReclasificacionIngresoRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Justificacion))
@@ -80,7 +82,7 @@ public class ClasificacionIngresoService(
         await repository.AddAuditoriaAsync(new AuditoriaClasificacionIngreso
         {
             ClasificacionIngresoId = clasificacion.Id,
-            UsuarioId = request.UsuarioId,
+            UsuarioId = usuarioId.ToString(),
             ValorAnterior = valorAnterior,
             ValorNuevo = request.ClasificacionIva.ToString(),
             Justificacion = request.Justificacion

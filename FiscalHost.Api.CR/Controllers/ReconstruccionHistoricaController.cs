@@ -14,10 +14,10 @@ public class ReconstruccionHistoricaController(IReconstruccionHistoricaService s
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> ReconstruirHistorica([FromForm] ReconstruccionHistoricaRequest request)
     {
-        request.UsuarioId = User.GetUsuarioId();
+        var usuarioId = User.GetUsuarioId();
         try
         {
-            var resultado = await service.ReconstruirAsync(request);
+            var resultado = await service.ReconstruirAsync(usuarioId, request);
             return Ok(resultado);
         }
         catch (Exception ex)
@@ -49,7 +49,6 @@ public class ReconstruccionHistoricaController(IReconstruccionHistoricaService s
 
         var request = new DetectarPeriodosFaltantesRequest
         {
-            UsuarioId = usuarioId,
             AnioInicio = anioInicio,
             AnioFin = anioFin,
             TipoFormulario = tipo
@@ -57,7 +56,7 @@ public class ReconstruccionHistoricaController(IReconstruccionHistoricaService s
 
         try
         {
-            var resultado = await service.DetectarPeriodosFaltantesAsync(request);
+            var resultado = await service.DetectarPeriodosFaltantesAsync(usuarioId, request);
             return Ok(resultado);
         }
         catch (Exception ex)

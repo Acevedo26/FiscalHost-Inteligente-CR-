@@ -6,8 +6,6 @@ namespace FiscalHost.Api.CR.Models.DTOs.Audit.Requests;
 
 public class RegistrarAuditoriaRequest
 {
-    public Guid? UsuarioId { get; set; }
-
     [EmailAddress]
     public string? CorreoUsuario { get; set; }
 

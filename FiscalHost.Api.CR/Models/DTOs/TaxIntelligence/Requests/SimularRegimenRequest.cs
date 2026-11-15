@@ -5,9 +5,6 @@ namespace FiscalHost.Api.CR.Models.DTOs.TaxIntelligence.Requests;
 
 public class SimularRegimenRequest
 {
-	[JsonIgnore]
-    public Guid UsuarioId { get; set; }
-
 	[Required]
 	[Range(2024, 2100)]
 	public short Anio { get; set; }

@@ -1,5 +1,6 @@
 using FiscalHost.Api.CR.Extensions;
 using FiscalHost.Api.CR.Models.DTOs.Operations.Requests;
+using FiscalHost.Api.CR.Models.Enums.Operations;
 using FiscalHost.Api.CR.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,14 +13,48 @@ public class OperacionesManualesController(
 {
     [HttpPost("reserva")]
     public async Task<IActionResult> RegistrarReserva(
-        [FromBody] ReservaDirectaRequest request)
+        [FromBody] CreateReservaRequest request)
     {
-        request.AnfitrionId = User.GetUsuarioId().ToString();
+        var usuarioId = User.GetUsuarioId();
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
+        // Map simplified frontend payload to canonical CreateReservaRequest
+        // Frontend sends: { fechaReserva, monto, huesped }
+        // We derive the rest with sensible defaults for manual entry
+        if (request.FechaInicio == default && request.FechaFin == default)
+        {
+            // If frontend sent fechaReserva as a single date, it would come in FechaInicio
+            // For manual single-date reservations, treat as same-day stay
+            request.FechaFin = request.FechaInicio;
+        }
+        
+        if (request.Moneda == default)
+            request.Moneda = TipoMoneda.CRC;
+        
+        if (request.TipoCambio == default)
+            request.TipoCambio = 1m;
+        
+        if (request.ClasificacionFiscal == default)
+            request.ClasificacionFiscal = ClasificacionFiscal.GRAVADO;
+        
+        if (request.PlataformaOrigen == default)
+            request.PlataformaOrigen = PlataformaOrigen.DIRECTA;
+        
+        if (request.PeriodoFiscalAnio == default)
+            request.PeriodoFiscalAnio = (short)request.FechaInicio.Year;
+        
+        if (request.PeriodoFiscalMes == default)
+            request.PeriodoFiscalMes = (short)request.FechaInicio.Month;
+        
+        if (string.IsNullOrWhiteSpace(request.ReferenciaPlataforma))
+            request.ReferenciaPlataforma = $"MANUAL-{Guid.NewGuid().ToString("N")[..8]}".ToUpper();
+        
+        if (string.IsNullOrWhiteSpace(request.Metadata))
+            request.Metadata = "{}";
+
         var (success, error) =
-            await service.RegistrarReservaAsync(request);
+            await service.RegistrarReservaAsync(usuarioId.ToString(), request);
 
         if (!success)
             return UnprocessableEntity(new { mensaje = error });
@@ -34,12 +69,16 @@ public class OperacionesManualesController(
     public async Task<IActionResult> RegistrarGasto(
         [FromBody] GastoOperativoRequest request)
     {
-        request.UsuarioId = User.GetUsuarioId();
+        var usuarioId = User.GetUsuarioId();
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
+        // Frontend may send ISO datetime string; ensure FechaEmision is DateOnly
+        // Model binding should handle ISO date (YYYY-MM-DD) portion automatically,
+        // but if a full datetime arrives, the date portion is used.
+
         var (success, error) =
-            await service.RegistrarGastoAsync(request);
+            await service.RegistrarGastoAsync(usuarioId, request);
 
         if (!success)
             return UnprocessableEntity(new { mensaje = error });
@@ -61,10 +100,10 @@ public class OperacionesManualesController(
     public async Task<IActionResult> SubirComprobanteGasto(
         [FromForm] UploadComprobanteRequest request)
     {
-        request.UsuarioId = User.GetUsuarioId();
+        var usuarioId = User.GetUsuarioId();
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
-        var (success, error) = await service.SubirComprobanteGastoAsync(request);
+        var (success, error) = await service.SubirComprobanteGastoAsync(usuarioId, request);
 
         if (!success) return UnprocessableEntity(new { mensaje = error });
 
@@ -219,66 +258,5 @@ public class OperacionesManualesController(
             gastos = gastos,
             operaciones = operacionesGenerales
         });
-    }
-
-    /// <summary>
-    /// Endpoint unificado para crear una operación manual (ingreso o gasto).
-    /// </summary>
-    [HttpPost("/api/operaciones")]
-    public async Task<IActionResult> CrearOperacion([FromBody] OperacionUnificadaRequest request)
-    {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-
-        var usuarioId = User.GetUsuarioId();
-
-        if (string.Equals(request.Tipo, "GASTO", StringComparison.OrdinalIgnoreCase))
-        {
-            var gastoReq = new GastoOperativoRequest
-            {
-                UsuarioId = usuarioId,
-                Proveedor = !string.IsNullOrWhiteSpace(request.Proveedor) ? request.Proveedor : (!string.IsNullOrWhiteSpace(request.Concepto) ? request.Concepto : "Proveedor General"),
-                NumeroFactura = !string.IsNullOrWhiteSpace(request.NumeroFactura) ? request.NumeroFactura : $"FAC-{DateTime.UtcNow.Ticks % 1000000}",
-                FechaEmision = DateOnly.FromDateTime(request.Fecha),
-                Descripcion = request.Concepto,
-                MontoTotal = request.Monto,
-                MontoNeto = Math.Round(request.Monto / 1.13m, 2),
-                MontoIvaSoportado = Math.Round(request.Monto - (request.Monto / 1.13m), 2),
-                Moneda = Models.Enums.Operations.TipoMoneda.CRC,
-                TipoGasto = !string.IsNullOrWhiteSpace(request.Clasificacion) ? request.Clasificacion : "General",
-                EsDeducibleRenta = true,
-                EsCreditoFiscalValido = true
-            };
-
-            var (success, error) = await service.RegistrarGastoAsync(gastoReq);
-            if (!success)
-                return UnprocessableEntity(new { mensaje = error });
-
-            return StatusCode(StatusCodes.Status201Created, new
-            {
-                mensaje = "Gasto registrado correctamente.",
-                data = gastoReq
-            });
-        }
-        else
-        {
-            var reservaReq = new ReservaDirectaRequest
-            {
-                AnfitrionId = usuarioId.ToString(),
-                FechaReserva = request.Fecha,
-                Monto = request.Monto,
-                Huesped = !string.IsNullOrWhiteSpace(request.Huesped) ? request.Huesped : (!string.IsNullOrWhiteSpace(request.Concepto) ? request.Concepto : "Huésped General")
-            };
-
-            var (success, error) = await service.RegistrarReservaAsync(reservaReq);
-            if (!success)
-                return UnprocessableEntity(new { mensaje = error });
-
-            return StatusCode(StatusCodes.Status201Created, new
-            {
-                mensaje = "Reserva registrada correctamente.",
-                data = reservaReq
-            });
-        }
     }
 }
