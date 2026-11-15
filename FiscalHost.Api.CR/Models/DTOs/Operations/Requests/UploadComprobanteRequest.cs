@@ -10,9 +10,6 @@ namespace FiscalHost.Api.CR.Models.DTOs.Operations.Requests;
 // ========================================================================
 public class UploadComprobanteRequest
 {
-    [JsonIgnore]
-    public Guid UsuarioId { get; set; }
-
     public Guid? PropiedadId { get; set; }
 
     // El archivo adjunto (PDF o Imagen).

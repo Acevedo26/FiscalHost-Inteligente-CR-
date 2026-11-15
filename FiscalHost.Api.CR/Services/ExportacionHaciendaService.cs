@@ -12,34 +12,34 @@ namespace FiscalHost.Api.CR.Services;
 
 public interface IExportacionHaciendaService
 {
-    Task<ExportacionHaciendaResponse> ExportarAsync(ExportacionHaciendaRequest request);
+    Task<ExportacionHaciendaResponse> ExportarAsync(Guid usuarioId, ExportacionHaciendaRequest request);
 }
 
 public class ExportacionHaciendaService(
     IExportacionHaciendaRepository repository)
     : IExportacionHaciendaService
 {
-    public async Task<ExportacionHaciendaResponse> ExportarAsync(ExportacionHaciendaRequest request)
+    public async Task<ExportacionHaciendaResponse> ExportarAsync(Guid usuarioId, ExportacionHaciendaRequest request)
     {
         var formato = request.Formato.Trim().ToUpperInvariant();
         var tipoContenido = request.TipoContenido.Trim().ToUpperInvariant();
 
-        var error = ValidarRequest(request, formato, tipoContenido);
+        var error = ValidarRequest(usuarioId, formato, tipoContenido);
         if (error is not null)
             return Error(error, formato, tipoContenido);
 
-        var reservas = await repository.GetReservasAsync(request.UsuarioId, request.AnioFiscal, request.Mes);
-        var gastos = await repository.GetGastosAsync(request.UsuarioId, request.AnioFiscal, request.Mes);
+        var reservas = await repository.GetReservasAsync(usuarioId, request.AnioFiscal, request.Mes);
+        var gastos = await repository.GetGastosAsync(usuarioId, request.AnioFiscal, request.Mes);
         CalculoFiscal? calculo = null;
 
         if (request.CalculoId.HasValue)
-            calculo = await repository.GetCalculoAsync(request.UsuarioId, request.CalculoId.Value);
+            calculo = await repository.GetCalculoAsync(usuarioId, request.CalculoId.Value);
 
         if (!reservas.Any() && !gastos.Any() && calculo is null)
             return Error("No existen datos para exportar en el periodo solicitado.", formato, tipoContenido);
 
         var contenido = formato == "XML"
-            ? GenerarXml(request, reservas, gastos, calculo)
+            ? GenerarXml(usuarioId, request, reservas, gastos, calculo)
             : GenerarCsv(reservas, gastos);
 
         var bytes = Encoding.UTF8.GetBytes(contenido);
@@ -53,11 +53,11 @@ public class ExportacionHaciendaService(
             tipoMime = "application/octet-stream";
         }
 
-        var nombreArchivo = ConstruirNombreArchivo(request, formato, extension);
+        var nombreArchivo = ConstruirNombreArchivo(usuarioId, request, formato, extension);
         var exportacion = new Exportacion
         {
             ExportacionId = Guid.NewGuid(),
-            UsuarioId = request.UsuarioId,
+            UsuarioId = usuarioId,
             CalculoId = request.CalculoId,
             Formato = formato,
             TipoContenido = tipoContenido,
@@ -89,32 +89,18 @@ public class ExportacionHaciendaService(
     }
 
     private static string? ValidarRequest(
-        ExportacionHaciendaRequest request,
+        Guid usuarioId,
         string formato,
         string tipoContenido)
     {
-        if (request.UsuarioId == Guid.Empty)
+        if (usuarioId == Guid.Empty)
             return "El usuario es obligatorio.";
-
-        if (request.AnioFiscal < 2019 || request.AnioFiscal > DateTime.UtcNow.Year)
-            return "El año fiscal solicitado no es valido.";
-
-        if (request.Mes is < 1 or > 12)
-            return "El mes solicitado no es valido.";
-
-        if (formato is not "XML" and not "CSV")
-            return "Formato no soportado. Use XML o CSV.";
-
-        if (tipoContenido is not "DECLARACION" and not "MOVIMIENTOS")
-            return "Tipo de contenido no soportado. Use DECLARACION o MOVIMIENTOS.";
-
-        if (request.ProtegerConContrasena && string.IsNullOrWhiteSpace(request.Contrasena))
-            return "La contraseña es obligatoria para proteger el archivo.";
 
         return null;
     }
 
     private static string GenerarXml(
+        Guid usuarioId,
         ExportacionHaciendaRequest request,
         List<Reserva> reservas,
         List<Gasto> gastos,
@@ -124,7 +110,7 @@ public class ExportacionHaciendaService(
             new XElement("DeclaracionHacienda",
                 new XAttribute("anio", request.AnioFiscal),
                 request.Mes.HasValue ? new XAttribute("mes", request.Mes.Value) : null,
-                new XElement("UsuarioId", request.UsuarioId),
+                new XElement("UsuarioId", usuarioId),
                 new XElement("Resumen",
                     new XElement("TotalIngresos", reservas.Sum(MontoReserva)),
                     new XElement("TotalGastos", gastos.Sum(g => g.MontoColones)),
@@ -210,6 +196,7 @@ public class ExportacionHaciendaService(
     }
 
     private static string ConstruirNombreArchivo(
+        Guid usuarioId,
         ExportacionHaciendaRequest request,
         string formato,
         string extension)
@@ -218,7 +205,7 @@ public class ExportacionHaciendaService(
             ? $"{request.AnioFiscal}_{request.Mes.Value:00}"
             : request.AnioFiscal.ToString(CultureInfo.InvariantCulture);
 
-        return $"hacienda_{request.UsuarioId:N}_{periodo}_{formato.ToLowerInvariant()}.{extension}";
+        return $"hacienda_{usuarioId:N}_{periodo}_{formato.ToLowerInvariant()}.{extension}";
     }
 
     private static decimal MontoReserva(Reserva reserva)

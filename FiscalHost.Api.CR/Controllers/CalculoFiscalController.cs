@@ -21,10 +21,10 @@ public class CalculoFiscalController : ControllerBase
     [HttpPost("iva/generar")]
     public async Task<IActionResult> GenerarCalculoIva([FromBody] GenerarCalculoIvaRequest request)
     {
-        request.UsuarioId = User.GetUsuarioId();
         try
         {
-            var resultado = await _calculoIvaService.CalcularIvaDevengadoAsync(request.UsuarioId, request.Anio, request.Mes);
+            var usuarioId = User.GetUsuarioId();
+            var resultado = await _calculoIvaService.CalcularIvaDevengadoAsync(usuarioId, request.Anio, request.Mes);
             return Ok(resultado);
         }
         catch (InvalidOperationException ex)

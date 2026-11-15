@@ -5,7 +5,7 @@ namespace FiscalHost.Api.CR.Services;
 public interface IConfiguracionTributariaService
 {
     Task<IEnumerable<ActividadEconomicaResponse>> GetActividadesAsync();
-    Task<(bool success, string? error, ConfiguracionTributariaResponse? data)> GuardarConfiguracionAsync(ConfiguracionTributariaRequest request);
+    Task<(bool success, string? error, ConfiguracionTributariaResponse? data)> GuardarConfiguracionAsync(string anfitrionId, ConfiguracionTributariaRequest request);
     Task<ConfiguracionTributariaResponse?> GetConfiguracionAsync(string anfitrionId);
 }
 
@@ -26,7 +26,7 @@ public class ConfiguracionTributariaService(
     }
 
     public async Task<(bool success, string? error, ConfiguracionTributariaResponse? data)> GuardarConfiguracionAsync(
-        ConfiguracionTributariaRequest request)
+        string anfitrionId, ConfiguracionTributariaRequest request)
     {
         // Validar código de actividad económica contra catálogo DGT
         var actividad = await actividadRepo.GetByCodigoAsync(request.CodigoActividad);
@@ -37,16 +37,16 @@ public class ConfiguracionTributariaService(
         if (!System.Text.RegularExpressions.Regex.IsMatch(request.Nise, NisePattern))
             return (false, "El NISE debe contener exactamente 10 dígitos numéricos.", null);
 
-        var existing = await configRepo.GetByAnfitrionIdAsync(request.AnfitrionId);
+        var existing = await configRepo.GetByAnfitrionIdAsync(anfitrionId);
         string? advertencia = null;
 
         if (existing is null)
         {
             var config = new ConfiguracionTributaria
             {
-                AnfitrionId = request.AnfitrionId,
+                AnfitrionId = anfitrionId,
                 CodigoActividad = actividad.Codigo,
-                TribuCr = GenerarTribuCr(request.AnfitrionId, request.CodigoActividad),
+                TribuCr = GenerarTribuCr(anfitrionId, request.CodigoActividad),
                 DireccionFiscal = request.DireccionFiscal,
                 Nise = request.Nise
             };
@@ -67,7 +67,7 @@ public class ConfiguracionTributariaService(
                 advertencia = "El cambio de actividad económica puede afectar sus obligaciones fiscales vigentes. Consulte con un contador autorizado.";
 
             existing.CodigoActividad = actividad.Codigo;
-            existing.TribuCr = GenerarTribuCr(request.AnfitrionId, request.CodigoActividad);
+            existing.TribuCr = GenerarTribuCr(anfitrionId, request.CodigoActividad);
             existing.DireccionFiscal = request.DireccionFiscal;
             existing.Nise = request.Nise;
             existing.FechaActualizacion = DateTime.UtcNow;

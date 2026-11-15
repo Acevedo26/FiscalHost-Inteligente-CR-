@@ -138,7 +138,7 @@ public class BackendMissingEndpointsTests
         // Arrange
         var usuarioId = Guid.NewGuid();
         var serviceMock = Substitute.For<IOperacionManualService>();
-        serviceMock.RegistrarReservaAsync(Arg.Any<ReservaDirectaRequest>())
+        serviceMock.RegistrarReservaAsync(Arg.Any<string>(), Arg.Any<CreateReservaRequest>())
             .Returns((true, null));
 
         var controller = new OperacionesManualesController(serviceMock)

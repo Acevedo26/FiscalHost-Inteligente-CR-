@@ -12,8 +12,8 @@ namespace FiscalHost.Api.CR.Services;
 
 public interface IAccesoContadorService
 {
-    Task<(bool success, string? error, AccesoContadorResponse? data)> InvitarAsync(InvitarContadorRequest request);
-    Task<(bool success, string? error)> RevocarAsync(Guid accesoId, RevocarAccesoContadorRequest request);
+    Task<(bool success, string? error, AccesoContadorResponse? data)> InvitarAsync(Guid anfitrionId, InvitarContadorRequest request);
+    Task<(bool success, string? error)> RevocarAsync(Guid accesoId, Guid anfitrionId, RevocarAccesoContadorRequest request);
     Task<(bool autorizado, string mensaje)> ValidarPermisoAsync(Guid anfitrionId, string correoContador, string permiso);
     Task<List<AccesoContadorResponse>> GetByAnfitrionAsync(Guid anfitrionId);
     Task<int> ProcesarExpiracionesAsync();
@@ -29,9 +29,9 @@ public class AccesoContadorService(
         RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     public async Task<(bool success, string? error, AccesoContadorResponse? data)> InvitarAsync(
-        InvitarContadorRequest request)
+        Guid anfitrionId, InvitarContadorRequest request)
     {
-        if (request.AnfitrionId == Guid.Empty)
+        if (anfitrionId == Guid.Empty)
             return (false, "El anfitrion es obligatorio.", null);
 
         if (!EmailRegex.IsMatch(request.CorreoContador))
@@ -40,12 +40,12 @@ public class AccesoContadorService(
         if (request.FechaExpiracion.HasValue && request.FechaExpiracion <= DateTimeOffset.UtcNow)
             return (false, "La fecha de expiracion debe ser futura.", null);
 
-        var anfitrion = await repository.GetUsuarioAsync(request.AnfitrionId);
+        var anfitrion = await repository.GetUsuarioAsync(anfitrionId);
         if (anfitrion is null)
             return (false, "No se encontro el anfitrion.", null);
 
         var existente = await repository.GetActivoPorCorreoAsync(
-            request.AnfitrionId,
+            anfitrionId,
             request.CorreoContador);
 
         if (existente is not null)
@@ -55,7 +55,7 @@ public class AccesoContadorService(
         var acceso = new AccesoContador
         {
             AccesoId = Guid.NewGuid(),
-            AnfitrionId = request.AnfitrionId,
+            AnfitrionId = anfitrionId,
             ContadorId = contador?.UsuarioId,
             CorreoContador = request.CorreoContador.Trim().ToLowerInvariant(),
             Permisos = JsonSerializer.Serialize(new PermisosContador
@@ -90,7 +90,7 @@ public class AccesoContadorService(
         await repository.SaveChangesAsync();
 
         await notificaciones.NotificarAsync(
-            request.AnfitrionId.ToString(),
+            anfitrionId.ToString(),
             $"Invitacion enviada al contador {acceso.CorreoContador}.");
 
         return (true, null, MapToResponse(acceso));
@@ -98,13 +98,14 @@ public class AccesoContadorService(
 
     public async Task<(bool success, string? error)> RevocarAsync(
         Guid accesoId,
+        Guid anfitrionId,
         RevocarAccesoContadorRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Justificacion))
             return (false, "La justificacion es obligatoria para revocar el acceso.");
 
         var acceso = await repository.GetByIdAsync(accesoId);
-        if (acceso is null || acceso.AnfitrionId != request.AnfitrionId)
+        if (acceso is null || acceso.AnfitrionId != anfitrionId)
             return (false, "No se encontro un acceso autorizado para revocar.");
 
         if (acceso.Estado != "ACTIVO")
@@ -119,7 +120,7 @@ public class AccesoContadorService(
         acceso.Estado = "REVOCADO";
         acceso.FechaRevocacion = DateTimeOffset.UtcNow;
 
-        var anfitrion = await repository.GetUsuarioAsync(request.AnfitrionId);
+        var anfitrion = await repository.GetUsuarioAsync(anfitrionId);
         await repository.AddAuditoriaAsync(BuildAuditoria(
             anfitrion,
             OperacionAuditoria.UPDATE,
@@ -131,7 +132,7 @@ public class AccesoContadorService(
         await repository.SaveChangesAsync();
 
         await notificaciones.NotificarAsync(
-            request.AnfitrionId.ToString(),
+            anfitrionId.ToString(),
             $"Acceso revocado para el contador {acceso.CorreoContador}.");
 
         return (true, null);

@@ -2,6 +2,7 @@ using FiscalHost.Api.CR.Exceptions;
 using FiscalHost.Api.CR.Models.DTOs;
 using FiscalHost.Api.CR.Models.DTOs.Operations.Requests;
 using FiscalHost.Api.CR.Models.Entities.Operations;
+using FiscalHost.Api.CR.Models.Enums.Operations;
 using FiscalHost.Api.CR.Repositories;
 using FiscalHost.Api.CR.Services;
 using NSubstitute;
@@ -27,16 +28,22 @@ public class OperacionManualServiceTests
     [Fact]
     public async Task RegistrarReserva_MontoInvalido_RetornaError()
     {
-        var request = new ReservaDirectaRequest
+        var request = new CreateReservaRequest
         {
-            AnfitrionId = "anf-001",
-            Huesped = "Juan Perez",
-            FechaReserva = DateTime.UtcNow,
-            Monto = 0
+            FechaInicio = DateTime.UtcNow,
+            FechaFin = DateTime.UtcNow,
+            MontoBruto = 0,
+            Moneda = TipoMoneda.CRC,
+            TipoCambio = 1,
+            ClasificacionFiscal = ClasificacionFiscal.GRAVADO,
+            PlataformaOrigen = PlataformaOrigen.DIRECTA,
+            PeriodoFiscalAnio = (short)DateTime.UtcNow.Year,
+            PeriodoFiscalMes = (short)DateTime.UtcNow.Month,
+            NombreHuesped = "Juan Perez"
         };
 
         var (success, error) =
-            await _sut.RegistrarReservaAsync(request);
+            await _sut.RegistrarReservaAsync("anf-001", request);
 
         Assert.False(success);
         Assert.Contains("monto", error!,
@@ -46,16 +53,22 @@ public class OperacionManualServiceTests
     [Fact]
     public async Task RegistrarReserva_FechaFutura_RetornaError()
     {
-        var request = new ReservaDirectaRequest
+        var request = new CreateReservaRequest
         {
-            AnfitrionId = "anf-001",
-            Huesped = "Juan Perez",
-            FechaReserva = DateTime.UtcNow.AddDays(1),
-            Monto = 100
+            FechaInicio = DateTime.UtcNow.AddDays(1),
+            FechaFin = DateTime.UtcNow.AddDays(1),
+            MontoBruto = 100,
+            Moneda = TipoMoneda.CRC,
+            TipoCambio = 1,
+            ClasificacionFiscal = ClasificacionFiscal.GRAVADO,
+            PlataformaOrigen = PlataformaOrigen.DIRECTA,
+            PeriodoFiscalAnio = (short)DateTime.UtcNow.AddDays(1).Year,
+            PeriodoFiscalMes = (short)DateTime.UtcNow.AddDays(1).Month,
+            NombreHuesped = "Juan Perez"
         };
 
         var (success, error) =
-            await _sut.RegistrarReservaAsync(request);
+            await _sut.RegistrarReservaAsync("anf-001", request);
 
         Assert.False(success);
         Assert.Contains("fecha", error!,
@@ -65,31 +78,37 @@ public class OperacionManualServiceTests
     [Fact]
     public async Task RegistrarReserva_Valida_GuardaReserva()
     {
-        var request = new ReservaDirectaRequest
+        var request = new CreateReservaRequest
         {
-            AnfitrionId = "anf-001",
-            Huesped = "Juan Perez",
-            FechaReserva = DateTime.UtcNow,
-            Monto = 100
+            FechaInicio = DateTime.UtcNow,
+            FechaFin = DateTime.UtcNow,
+            MontoBruto = 100,
+            Moneda = TipoMoneda.CRC,
+            TipoCambio = 1,
+            ClasificacionFiscal = ClasificacionFiscal.GRAVADO,
+            PlataformaOrigen = PlataformaOrigen.DIRECTA,
+            PeriodoFiscalAnio = (short)DateTime.UtcNow.Year,
+            PeriodoFiscalMes = (short)DateTime.UtcNow.Month,
+            NombreHuesped = "Juan Perez"
         };
 
         var (success, error) =
-            await _sut.RegistrarReservaAsync(request);
+            await _sut.RegistrarReservaAsync("anf-001", request);
 
         Assert.True(success);
         Assert.Null(error);
 
         await _repository.Received(1)
             .AddReservaAsync(
-                Arg.Any<ReservaDirecta>());
+                Arg.Is<ReservaDirecta>(r => r.Monto == 100 && r.Huesped == "Juan Perez"));
     }
 
     [Fact]
     public async Task RegistrarGasto_MontoInvalido_RetornaError()
     {
+        var usuarioId = Guid.NewGuid();
         var request = new GastoOperativoRequest
         {
-            UsuarioId = Guid.NewGuid(),
             Proveedor = "Proveedor",
             NumeroFactura = "FAC001",
             FechaEmision = DateOnly.FromDateTime(DateTime.UtcNow),
@@ -97,7 +116,7 @@ public class OperacionManualServiceTests
         };
 
         var (success, _) =
-            await _sut.RegistrarGastoAsync(request);
+            await _sut.RegistrarGastoAsync(usuarioId, request);
 
         Assert.False(success);
     }
@@ -106,9 +125,9 @@ public class OperacionManualServiceTests
     public async Task RegistrarGasto_Valido_GuardaGasto()
     {
         const string descripcion = "<script>alert(1)</script>";
+        var usuarioId = Guid.NewGuid();
         var request = new GastoOperativoRequest
         {
-            UsuarioId = Guid.NewGuid(),
             Proveedor = "Proveedor",
             NumeroFactura = "FAC001",
             FechaEmision = DateOnly.FromDateTime(DateTime.UtcNow),
@@ -117,7 +136,7 @@ public class OperacionManualServiceTests
         };
 
         var (success, error) =
-            await _sut.RegistrarGastoAsync(request);
+            await _sut.RegistrarGastoAsync(usuarioId, request);
 
         Assert.True(success);
         Assert.Null(error);
@@ -125,16 +144,16 @@ public class OperacionManualServiceTests
         await _repository.Received(1)
             .AddGastoAsync(
                 Arg.Is<FiscalHost.Api.CR.Models.Entities.Operations.Gasto>(
-                    gasto => gasto.Descripcion == descripcion));
+                    gasto => gasto.Descripcion == descripcion && gasto.UsuarioId == usuarioId));
     }
 
     [Fact]
     public async Task SubirComprobanteGastoAsync_OcrFalla_LanzaBusinessRuleValidationExceptionConDatosExtraidos()
     {
         // Arrange
+        var usuarioId = Guid.NewGuid();
         var request = new UploadComprobanteRequest
         {
-            UsuarioId = Guid.NewGuid(),
             PropiedadId = Guid.NewGuid(),
             Comprobante = Substitute.For<IFormFile>()
         };
@@ -160,7 +179,7 @@ public class OperacionManualServiceTests
 
         // Act & Assert: Debe lanzar BusinessRuleValidationException con detalles del OCR
         var ex = await Assert.ThrowsAsync<BusinessRuleValidationException>(() =>
-            _sut.SubirComprobanteGastoAsync(request));
+            _sut.SubirComprobanteGastoAsync(usuarioId, request));
 
         Assert.Equal("El OCR no pudo extraer los datos del comprobante. Complete los campos manualmente.", ex.Message);
         Assert.NotNull(ex.ErrorDetails);
@@ -173,9 +192,9 @@ public class OperacionManualServiceTests
     public async Task SubirComprobanteGastoAsync_OcrExitoso_GuardaGastoConCreditoFiscal()
     {
         // Arrange
+        var usuarioId = Guid.NewGuid();
         var request = new UploadComprobanteRequest
         {
-            UsuarioId = Guid.NewGuid(),
             PropiedadId = Guid.NewGuid(),
             Comprobante = Substitute.For<IFormFile>()
         };
@@ -202,7 +221,7 @@ public class OperacionManualServiceTests
             .Returns(false);
 
         // Act
-        var (success, error) = await _sut.SubirComprobanteGastoAsync(request);
+        var (success, error) = await _sut.SubirComprobanteGastoAsync(usuarioId, request);
 
         // Assert
         Assert.True(success);
@@ -212,6 +231,7 @@ public class OperacionManualServiceTests
             g.Proveedor == "Proveedor Completo" &&
             g.NumeroFactura == "FAC-123" &&
             g.EsCreditoFiscalValido == true &&
-            g.EstadoOcr == EstadoOcr.PROCESADO));
+            g.EstadoOcr == EstadoOcr.PROCESADO &&
+            g.UsuarioId == usuarioId));
     }
 }

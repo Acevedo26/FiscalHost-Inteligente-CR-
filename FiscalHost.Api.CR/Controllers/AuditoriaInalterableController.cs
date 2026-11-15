@@ -17,7 +17,8 @@ public class AuditoriaInalterableController(
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var (success, error, data) = await service.RegistrarAsync(request);
+        var usuarioId = User.GetUsuarioId();
+        var (success, error, data) = await service.RegistrarAsync(usuarioId, request);
 
         return success
             ? Ok(data)

@@ -10,7 +10,6 @@ namespace FiscalHost.Api.CR.Controllers;
 public class AuthController(IAuthService service) : ControllerBase
 {
     [HttpPost("register")]
-    [HttpPost("registro")]
     public async Task<IActionResult> Register(
         [FromBody] RegistroUsuarioRequest request)
     {

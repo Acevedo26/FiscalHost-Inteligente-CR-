@@ -13,11 +13,11 @@ public class CalculoRentaCapitalController(
 	[HttpPost("calcular")]
 	public async Task<IActionResult> Calcular([FromBody] CalcularRentaCapitalRequest request)
 	{
-        request.UsuarioId = User.GetUsuarioId();
+		var usuarioId = User.GetUsuarioId();
 		if (!ModelState.IsValid)
 			return BadRequest(ModelState);
 
-		var (success, error, data) = await service.CalcularAsync(request);
+		var (success, error, data) = await service.CalcularAsync(usuarioId, request);
 
 		return success
 			? Ok(data)
@@ -27,11 +27,11 @@ public class CalculoRentaCapitalController(
 	[HttpPost("simular")]
 	public async Task<IActionResult> Simular([FromBody] SimularRegimenRequest request)
 	{
-        request.UsuarioId = User.GetUsuarioId();
+		var usuarioId = User.GetUsuarioId();
 		if (!ModelState.IsValid)
 			return BadRequest(ModelState);
 
-		var (success, error, data) = await service.SimularAsync(request);
+		var (success, error, data) = await service.SimularAsync(usuarioId, request);
 
 		return success
 			? Ok(data)
@@ -41,11 +41,11 @@ public class CalculoRentaCapitalController(
 	[HttpPost("cambiar-regimen")]
 	public async Task<IActionResult> CambiarRegimen([FromBody] CambiarRegimenTributarioRequest request)
 	{
-        request.UsuarioId = User.GetUsuarioId();
+		var usuarioId = User.GetUsuarioId();
 		if (!ModelState.IsValid)
 			return BadRequest(ModelState);
 
-		var (success, error, regimenActual) = await service.CambiarRegimenAsync(request);
+		var (success, error, regimenActual) = await service.CambiarRegimenAsync(usuarioId, request);
 
 		return success
 			? Ok(new { regimenActual })

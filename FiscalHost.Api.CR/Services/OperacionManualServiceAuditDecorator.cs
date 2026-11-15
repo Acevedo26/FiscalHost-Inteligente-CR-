@@ -10,14 +10,14 @@ public class OperacionManualServiceAuditDecorator(
     IOperacionManualService innerService,
     IOperacionManualRepository repository) : IOperacionManualService
 {
-    public async Task<(bool success, string? error)> RegistrarReservaAsync(ReservaDirectaRequest request)
+    public async Task<(bool success, string? error)> RegistrarReservaAsync(string anfitrionId, CreateReservaRequest request)
     {
-        var result = await innerService.RegistrarReservaAsync(request);
+        var result = await innerService.RegistrarReservaAsync(anfitrionId, request);
         if (result.success)
         {
             await repository.AddAuditoriaAsync(new AuditoriaOperacion
             {
-                UsuarioId = Guid.Parse(request.AnfitrionId),
+                UsuarioId = Guid.Parse(anfitrionId),
                 Operacion = OperacionAuditoria.INSERT,
                 TablaAfectada = "reserva_directa",
                 NewValues = JsonSerializer.Serialize(request)
@@ -27,14 +27,14 @@ public class OperacionManualServiceAuditDecorator(
         return result;
     }
 
-    public async Task<(bool success, string? error)> RegistrarGastoAsync(GastoOperativoRequest request)
+    public async Task<(bool success, string? error)> RegistrarGastoAsync(Guid usuarioId, GastoOperativoRequest request)
     {
-        var result = await innerService.RegistrarGastoAsync(request);
+        var result = await innerService.RegistrarGastoAsync(usuarioId, request);
         if (result.success)
         {
             await repository.AddAuditoriaAsync(new AuditoriaOperacion
             {
-                UsuarioId = request.UsuarioId,
+                UsuarioId = usuarioId,
                 Operacion = OperacionAuditoria.INSERT,
                 TablaAfectada = "gasto",
                 NewValues = JsonSerializer.Serialize(request)
@@ -44,14 +44,14 @@ public class OperacionManualServiceAuditDecorator(
         return result;
     }
 
-    public async Task<(bool success, string? error)> SubirComprobanteGastoAsync(UploadComprobanteRequest request)
+    public async Task<(bool success, string? error)> SubirComprobanteGastoAsync(Guid usuarioId, UploadComprobanteRequest request)
     {
-        var result = await innerService.SubirComprobanteGastoAsync(request);
+        var result = await innerService.SubirComprobanteGastoAsync(usuarioId, request);
         if (result.success)
         {
             await repository.AddAuditoriaAsync(new AuditoriaOperacion
             {
-                UsuarioId = request.UsuarioId,
+                UsuarioId = usuarioId,
                 Operacion = OperacionAuditoria.INSERT,
                 TablaAfectada = "gasto",
                 NewValues = "Carga de comprobante: " + request.Comprobante.FileName

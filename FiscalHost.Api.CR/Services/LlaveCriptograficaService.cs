@@ -11,8 +11,8 @@ public interface INotificacionService
 
 public interface ILlaveCriptograficaService
 {
-    Task<(bool success, string? error, LlaveCriptograficaResponse? data)> CargarLlaveAsync(CargarLlaveRequest request);
-    Task<(bool success, string? error)> ActualizarContrasenaAsync(ActualizarContrasenaRequest request);
+    Task<(bool success, string? error, LlaveCriptograficaResponse? data)> CargarLlaveAsync(string anfitrionId, CargarLlaveRequest request);
+    Task<(bool success, string? error)> ActualizarContrasenaAsync(string anfitrionId, ActualizarContrasenaRequest request);
     Task<LlaveCriptograficaResponse?> GetLlaveAsync(string anfitrionId);
 }
 
@@ -21,7 +21,7 @@ public class LlaveCriptograficaService(
     INotificacionService notificaciones,
     IConfiguration config) : ILlaveCriptograficaService
 {
-    public async Task<(bool success, string? error, LlaveCriptograficaResponse? data)> CargarLlaveAsync(CargarLlaveRequest request)
+    public async Task<(bool success, string? error, LlaveCriptograficaResponse? data)> CargarLlaveAsync(string anfitrionId, CargarLlaveRequest request)
     {
         if (!request.Archivo.FileName.EndsWith(".p12", StringComparison.OrdinalIgnoreCase))
             return (false, "Solo se permiten archivos con extensión .p12.", null);
@@ -33,7 +33,7 @@ public class LlaveCriptograficaService(
         if (!ValidarCertificado(bytes, request.Contrasena, out var errorCert))
             return (false, errorCert, null);
 
-        var existing = await repo.GetByAnfitrionIdAsync(request.AnfitrionId);
+        var existing = await repo.GetByAnfitrionIdAsync(anfitrionId);
         var contrasenacifrada = HashContrasena(request.Contrasena);
         var contenidoCifrado = CifrarBytes(bytes);
 
@@ -41,7 +41,7 @@ public class LlaveCriptograficaService(
         {
             existing = new LlaveCriptografica
             {
-                AnfitrionId = request.AnfitrionId,
+                AnfitrionId = anfitrionId,
                 NombreArchivo = request.Archivo.FileName,
                 ContenidoCifrado = contenidoCifrado,
                 ReferenciaKeyVault = "444-5567",
@@ -62,9 +62,9 @@ public class LlaveCriptograficaService(
         return (true, null, MapToResponse(existing));
     }
 
-    public async Task<(bool success, string? error)> ActualizarContrasenaAsync(ActualizarContrasenaRequest request)
+    public async Task<(bool success, string? error)> ActualizarContrasenaAsync(string anfitrionId, ActualizarContrasenaRequest request)
     {
-        var llave = await repo.GetByAnfitrionIdAsync(request.AnfitrionId);
+        var llave = await repo.GetByAnfitrionIdAsync(anfitrionId);
         if (llave is null) return (false, "No se encontró una llave activa para el anfitrión.");
 
         if (llave.ContrasenaHash != HashContrasena(request.ContrasenaActual))
@@ -79,7 +79,7 @@ public class LlaveCriptograficaService(
         await repo.SaveChangesAsync();
 
         await RegistrarAuditoriaAsync(llave.Id, "ACTUALIZAR_CONTRASENA", "Contraseña de llave criptográfica actualizada.");
-        await notificaciones.NotificarAsync(request.AnfitrionId, "La contraseña de su llave criptográfica ha sido actualizada.");
+        await notificaciones.NotificarAsync(anfitrionId, "La contraseña de su llave criptográfica ha sido actualizada.");
         return (true, null);
     }
 

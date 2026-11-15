@@ -9,9 +9,6 @@ namespace FiscalHost.Api.CR.Models.DTOs.TaxIntelligence.Requests;
 /// </summary>
 public class DetectarPeriodosFaltantesRequest
 {
-    [JsonIgnore]
-    public Guid UsuarioId { get; set; }
-
     [Required]
     [Range(2020, 2026)]
     public short AnioInicio { get; set; }

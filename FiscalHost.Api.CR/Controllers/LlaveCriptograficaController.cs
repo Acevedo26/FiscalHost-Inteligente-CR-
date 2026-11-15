@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 namespace FiscalHost.Api.CR.Controllers;
 
 [ApiController]
-[Route("api/llaves-criptograficas")]
 [Route("api/llave-criptografica")]
 public class LlaveCriptograficaController(ILlaveCriptograficaService service) : ControllerBase
 {
@@ -14,17 +13,18 @@ public class LlaveCriptograficaController(ILlaveCriptograficaService service) : 
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> Cargar([FromForm] CargarLlaveRequest request)
     {
-        request.AnfitrionId = User.GetUsuarioId().ToString();
+        var anfitrionId = User.GetUsuarioId().ToString();
         if (!ModelState.IsValid) return BadRequest(ModelState);
-        var (success, error, data) = await service.CargarLlaveAsync(request);
+        var (success, error, data) = await service.CargarLlaveAsync(anfitrionId, request);
         return success ? Ok(data) : UnprocessableEntity(new { mensaje = error });
     }
 
     [HttpPut("actualizar-contrasena")]
     public async Task<IActionResult> ActualizarContrasena([FromBody] ActualizarContrasenaRequest request)
     {
+        var anfitrionId = User.GetUsuarioId().ToString();
         if (!ModelState.IsValid) return BadRequest(ModelState);
-        var (success, error) = await service.ActualizarContrasenaAsync(request);
+        var (success, error) = await service.ActualizarContrasenaAsync(anfitrionId, request);
         return success ? Ok(new { mensaje = "Contraseña actualizada correctamente." }) : UnprocessableEntity(new { mensaje = error });
     }
 

@@ -15,11 +15,11 @@ public class ExportacionesHaciendaController(
     public async Task<IActionResult> Exportar(
         [FromBody] ExportacionHaciendaRequest request)
     {
-        request.UsuarioId = User.GetUsuarioId();
+        var usuarioId = User.GetUsuarioId();
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var resultado = await service.ExportarAsync(request);
+        var resultado = await service.ExportarAsync(usuarioId, request);
 
         return resultado.Success
             ? Ok(resultado)

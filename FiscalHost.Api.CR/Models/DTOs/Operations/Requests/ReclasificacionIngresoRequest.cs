@@ -5,9 +5,6 @@ namespace FiscalHost.Api.CR.Models.DTOs.Operations.Requests;
 
 public class ReclasificacionIngresoRequest
 {
-    [JsonIgnore]
-    public string UsuarioId { get; set; } = string.Empty;
-
     [Required]
     public ClasificacionIva ClasificacionIva { get; set; }
 

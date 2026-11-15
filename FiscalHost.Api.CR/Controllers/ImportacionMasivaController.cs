@@ -1,5 +1,5 @@
 using FiscalHost.Api.CR.Extensions;
-﻿using FiscalHost.Api.CR.DTOs.Operations;
+using FiscalHost.Api.CR.Models.DTOs.Operations;
 using FiscalHost.Api.CR.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Text;
@@ -17,12 +17,11 @@ public class ImportacionMasivaController(
 	public async Task<IActionResult> ImportarCsv(
 		[FromForm] ImportacionRequest request)
 	{
-        request.UsuarioId = User.GetUsuarioId();
 		try
 		{
 			var resultado = await service.ImportarAsync(
 				request.Archivo,
-				request.UsuarioId);
+				User.GetUsuarioId());
 
 			return Ok(resultado);
 		}

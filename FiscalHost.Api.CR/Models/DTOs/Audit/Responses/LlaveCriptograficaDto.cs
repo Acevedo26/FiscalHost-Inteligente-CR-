@@ -14,16 +14,12 @@ namespace FiscalHost.Api.CR.Models.DTOs.Audit.Responses;
 
 public class CargarLlaveRequest
 {
-    [JsonIgnore]
-    public string AnfitrionId { get; set; } = string.Empty;
     [Required] public IFormFile Archivo { get; set; } = null!;
     [Required] public string Contrasena { get; set; } = string.Empty;
 }
 
 public class ActualizarContrasenaRequest
 {
-    [JsonIgnore]
-    public string AnfitrionId { get; set; } = string.Empty;
     [Required] public string ContrasenaActual { get; set; } = string.Empty;
     [Required] public string ContrasenaNueva { get; set; } = string.Empty;
 }

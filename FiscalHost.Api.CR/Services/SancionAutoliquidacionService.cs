@@ -9,7 +9,7 @@ namespace FiscalHost.Api.CR.Services;
 
 public interface ISancionAutoliquidacionService
 {
-	Task<(bool success, string? error, SancionResponse? data)> CalcularAsync(CalcularSancionRequest request);
+	Task<(bool success, string? error, SancionResponse? data)> CalcularAsync(Guid usuarioId, CalcularSancionRequest request);
 }
 
 public class SancionAutoliquidacionService(
@@ -19,9 +19,9 @@ public class SancionAutoliquidacionService(
 	private const decimal PorcentajeReduccionArt88 = 80.00m;
 
 	public async Task<(bool success, string? error, SancionResponse? data)> CalcularAsync(
-		CalcularSancionRequest request)
+		Guid usuarioId, CalcularSancionRequest request)
 	{
-		var obligacion = await repository.GetObligacionPendienteAsync(request.UsuarioId, request.ObligacionId);
+		var obligacion = await repository.GetObligacionPendienteAsync(usuarioId, request.ObligacionId);
 		if (obligacion is null || obligacion.MontoCapital <= 0)
 			return (false, "No hay deuda registrada para este periodo. Verifique los datos historicos.", null);
 
@@ -32,7 +32,7 @@ public class SancionAutoliquidacionService(
 				$"No hay salario base configurado para el {anio}. Debe registrarse primero.",
 				null);
 
-		var perfil = await repository.GetPerfilTributarioAsync(request.UsuarioId);
+		var perfil = await repository.GetPerfilTributarioAsync(usuarioId);
 
 		var esInscripcionTardia = perfil is { FechaInicioActividad: not null, FechaInscripcionHacienda: not null }
 								   && perfil.FechaInscripcionHacienda > perfil.FechaInicioActividad;
@@ -54,12 +54,12 @@ public class SancionAutoliquidacionService(
 
 		var sancionExistente = await repository.GetSancionExistenteAsync(request.ObligacionId);
 		var sancion = sancionExistente
-					  ?? new SancionAutoliquidacion { SancionId = Guid.NewGuid(), UsuarioId = request.UsuarioId, ObligacionId = request.ObligacionId };
+					  ?? new SancionAutoliquidacion { SancionId = Guid.NewGuid(), UsuarioId = usuarioId, ObligacionId = request.ObligacionId };
 
 		if (sancionExistente is null)
 			await repository.AddSancionAsync(sancion);
 
-		sancion.UsuarioId = request.UsuarioId;
+		sancion.UsuarioId = usuarioId;
 		sancion.ObligacionId = request.ObligacionId;
 		sancion.TipoSancion = tipoSancion;
 		sancion.FechaOmision = DateTime.SpecifyKind(obligacion.FechaVencimiento.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);

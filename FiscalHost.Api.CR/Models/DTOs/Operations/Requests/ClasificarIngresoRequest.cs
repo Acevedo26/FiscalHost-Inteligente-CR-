@@ -5,9 +5,6 @@ namespace FiscalHost.Api.CR.Models.DTOs.Operations.Requests;
 
 public class ClasificarIngresoRequest
 {
-    [JsonIgnore]
-    public string AnfitrionId { get; set; } = string.Empty;
-
     [Required]
     public DateTime FechaEntrada { get; set; }
 

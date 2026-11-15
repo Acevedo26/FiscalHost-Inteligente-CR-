@@ -5,9 +5,6 @@ namespace FiscalHost.Api.CR.Models.DTOs.TaxIntelligence.Requests;
 
 public class ExportacionHaciendaRequest
 {
-    [JsonIgnore]
-    public Guid UsuarioId { get; set; }
-
     public Guid? CalculoId { get; set; }
 
     [Required]

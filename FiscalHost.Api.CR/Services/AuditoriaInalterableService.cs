@@ -9,6 +9,7 @@ namespace FiscalHost.Api.CR.Services;
 public interface IAuditoriaInalterableService
 {
     Task<(bool success, string? error, AuditoriaOperacionResponse? data)> RegistrarAsync(
+        Guid usuarioId,
         RegistrarAuditoriaRequest request);
 
     Task<List<AuditoriaOperacionResponse>> ConsultarHistorialAsync(
@@ -27,6 +28,7 @@ public class AuditoriaInalterableService(
     : IAuditoriaInalterableService
 {
     public async Task<(bool success, string? error, AuditoriaOperacionResponse? data)> RegistrarAsync(
+        Guid usuarioId,
         RegistrarAuditoriaRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.TablaAfectada))
@@ -38,7 +40,7 @@ public class AuditoriaInalterableService(
         var auditoria = new AuditoriaOperacion
         {
             AuditId = Guid.NewGuid(),
-            UsuarioId = request.UsuarioId,
+            UsuarioId = usuarioId,
             CorreoUsuario = request.CorreoUsuario,
             RolUsuario = request.RolUsuario,
             Operacion = request.Operacion,
