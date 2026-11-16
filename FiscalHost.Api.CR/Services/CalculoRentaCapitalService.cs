@@ -59,8 +59,11 @@ public class CalculoRentaCapitalService(
 			deduccion = rentaBruta * (periodo.DeduccionPlanaCapital / 100m);
 		}
 
+		// Redondeo bancario (Hacienda): 2 decimales, MidpointRounding.ToEven
+		deduccion = Math.Round(deduccion, 2, MidpointRounding.ToEven);
 		var rentaNeta = Math.Max(rentaBruta - deduccion, 0m);
-		var impuestoRenta = rentaNeta * (periodo.TarifaRentaCapital / 100m);
+		rentaNeta = Math.Round(rentaNeta, 2, MidpointRounding.ToEven);
+		var impuestoRenta = Math.Round(rentaNeta * (periodo.TarifaRentaCapital / 100m), 2, MidpointRounding.ToEven);
 
 		var calculoExistente = await repository.GetCalculoExistenteAsync(usuarioId, periodo.PeriodoId, TipoFormulario.D125);
 		var calculo = calculoExistente
@@ -122,15 +125,15 @@ public class CalculoRentaCapitalService(
 
 		var rentaBruta = reservas.Sum(r => r.MontoColones);
 
-		var deduccionCapital = rentaBruta * (periodo.DeduccionPlanaCapital / 100m);
-		var rentaNetaCapital = Math.Max(rentaBruta - deduccionCapital, 0m);
-		var impuestoCapital = rentaNetaCapital * (periodo.TarifaRentaCapital / 100m);
+		var deduccionCapital = Math.Round(rentaBruta * (periodo.DeduccionPlanaCapital / 100m), 2, MidpointRounding.ToEven);
+		var rentaNetaCapital = Math.Round(Math.Max(rentaBruta - deduccionCapital, 0m), 2, MidpointRounding.ToEven);
+		var impuestoCapital = Math.Round(rentaNetaCapital * (periodo.TarifaRentaCapital / 100m), 2, MidpointRounding.ToEven);
 
 		var gastosValidos = await ObtenerGastosDeduciblesValidosAsync(usuarioId, request.Anio, request.Mes);
 		var tieneComprobantesValidos = gastosValidos.Count > 0;
-		var deduccionUtilidades = gastosValidos.Sum(g => g.MontoNeto ?? g.MontoColones);
-		var rentaNetaUtilidades = Math.Max(rentaBruta - deduccionUtilidades, 0m);
-		var impuestoUtilidades = rentaNetaUtilidades * (periodo.TarifaRentaCapital / 100m);
+		var deduccionUtilidades = Math.Round(gastosValidos.Sum(g => g.MontoNeto ?? g.MontoColones), 2, MidpointRounding.ToEven);
+		var rentaNetaUtilidades = Math.Round(Math.Max(rentaBruta - deduccionUtilidades, 0m), 2, MidpointRounding.ToEven);
+		var impuestoUtilidades = Math.Round(rentaNetaUtilidades * (periodo.TarifaRentaCapital / 100m), 2, MidpointRounding.ToEven);
 
 		string recomendado;
 		decimal ahorro;

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Security.Claims;
+using System.Threading;
 using System.Threading.Tasks;
 using FiscalHost.Api.CR.Controllers;
 using FiscalHost.Api.CR.Models.DTOs.Operations.Requests;
@@ -256,5 +257,82 @@ public class ChallengerAuditAndEndpointsStressTests
 
         // Assert
         Assert.IsType<NotFoundObjectResult>(result);
+    }
+
+    [Fact]
+    public async Task ActualizarReserva_Concurrente_ConMocks_AmbosCapturanOldValuesOriginales()
+    {
+        // Arrange: con mocks, ambos updates leen el mismo estado original
+        // NOTA: La protección real de concurrencia (RowVersion) está en la capa EF Core.
+        // Este test verifica que la lógica de captura de OldValues es correcta.
+        var repository = Substitute.For<IOperacionManualRepository>();
+        var sut = new OperacionManualService(
+            repository,
+            Substitute.For<IBlobStorageService>(),
+            Substitute.For<IOcrService>()
+        );
+
+        var reservaId = Guid.NewGuid();
+        var usuarioId = Guid.NewGuid();
+
+        // Return fresh copy each call to avoid shared mutable state between concurrent tasks
+        repository.GetReservaByIdAsync(reservaId).Returns(x => new Reserva
+        {
+            ReservaId = reservaId,
+            UsuarioId = usuarioId,
+            MontoColones = 50000,
+            MontoBruto = 50000,
+            NombreHuesped = "Huésped Original",
+            FechaInicio = new DateTime(2026, 4, 1)
+        });
+
+        var request1 = new UpdateReservaRequest
+        {
+            Monto = 60000,
+            Huesped = "Update 1",
+            RazonCambio = "Concurrencia test 1"
+        };
+
+        var request2 = new UpdateReservaRequest
+        {
+            Monto = 70000,
+            Huesped = "Update 2",
+            RazonCambio = "Concurrencia test 2"
+        };
+
+        // Capturar auditorías
+        var capturedAudits = new List<AuditoriaOperacion>();
+        await repository.AddAuditoriaAsync(Arg.Do<AuditoriaOperacion>(a => capturedAudits.Add(a)));
+
+        // Ejecutar concurrentemente (con mocks ambos tendrán éxito)
+        var gate = new SemaphoreSlim(0, 2);
+        var task1 = Task.Run(async () =>
+        {
+            gate.Release();
+            await gate.WaitAsync();
+            return await sut.ActualizarReservaAsync(reservaId.ToString(), request1);
+        });
+
+        var task2 = Task.Run(async () =>
+        {
+            gate.Release();
+            await gate.WaitAsync();
+            return await sut.ActualizarReservaAsync(reservaId.ToString(), request2);
+        });
+
+        await Task.WhenAll(task1, task2);
+
+        // Assert: Con mocks, AMBOS capturan OldValues del estado original
+        Assert.Equal(2, capturedAudits.Count);
+        foreach (var audit in capturedAudits)
+        {
+            Assert.Contains("50000", audit.OldValues); // Monto original capturado correctamente
+            // Verificar que OldValues es JSON válido con los campos esperados
+            Assert.Contains("MontoColones", audit.OldValues);
+            Assert.Contains("MontoBruto", audit.OldValues);
+        }
+        
+        // SaveChangesAsync llamado 2 veces (comportamiento de mocks sin RowVersion)
+        await repository.Received(2).SaveChangesAsync();
     }
 }
