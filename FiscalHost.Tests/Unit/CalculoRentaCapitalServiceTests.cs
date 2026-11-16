@@ -88,8 +88,8 @@ public class CalculoRentaCapitalServiceTests
 			.Setup(r => r.GetPerfilTributarioAsync(UsuarioId))
 			.ReturnsAsync((PerfilTributario?)null);
 
-		var (success, error, data) = await _service.CalcularAsync(
-			new CalcularRentaCapitalRequest { UsuarioId = UsuarioId, Anio = 2026, Mes = 6 });
+		var (success, error, data) = await _service.CalcularAsync(UsuarioId,
+			new CalcularRentaCapitalRequest { Anio = 2026, Mes = 6 });
 
 		Assert.False(success);
 		Assert.Null(data);
@@ -107,8 +107,8 @@ public class CalculoRentaCapitalServiceTests
 			.Setup(r => r.GetPeriodoFiscalAsync(2026, 6, TipoFormulario.D125))
 			.ReturnsAsync((PeriodoFiscal?)null);
 
-		var (success, error, data) = await _service.CalcularAsync(
-			new CalcularRentaCapitalRequest { UsuarioId = UsuarioId, Anio = 2026, Mes = 6 });
+		var (success, error, data) = await _service.CalcularAsync(UsuarioId,
+			new CalcularRentaCapitalRequest { Anio = 2026, Mes = 6 });
 
 		Assert.False(success);
 		Assert.Null(data);
@@ -130,8 +130,8 @@ public class CalculoRentaCapitalServiceTests
 			.Setup(r => r.GetReservasDelPeriodoAsync(UsuarioId, 2026, 6))
 			.ReturnsAsync(new List<Reserva>());
 
-		var (success, error, data) = await _service.CalcularAsync(
-			new CalcularRentaCapitalRequest { UsuarioId = UsuarioId, Anio = 2026, Mes = 6 });
+		var (success, error, data) = await _service.CalcularAsync(UsuarioId,
+			new CalcularRentaCapitalRequest { Anio = 2026, Mes = 6 });
 
 		Assert.False(success);
 		Assert.Null(data);
@@ -157,8 +157,8 @@ public class CalculoRentaCapitalServiceTests
 			.Setup(r => r.GetCalculoExistenteAsync(UsuarioId, PeriodoId, TipoFormulario.D125))
 			.ReturnsAsync((CalculoFiscal?)null);
 
-		var (success, error, data) = await _service.CalcularAsync(
-			new CalcularRentaCapitalRequest { UsuarioId = UsuarioId, Anio = 2026, Mes = 6 });
+		var (success, error, data) = await _service.CalcularAsync(UsuarioId,
+			new CalcularRentaCapitalRequest { Anio = 2026, Mes = 6 });
 
 		Assert.True(success);
 		Assert.Null(error);
@@ -192,8 +192,8 @@ public class CalculoRentaCapitalServiceTests
 			.Setup(r => r.GetGastosDeduciblesDelPeriodoAsync(UsuarioId, 2026, 6))
 			.ReturnsAsync(new List<Gasto>());
 
-		var (success, error, data) = await _service.CalcularAsync(
-			new CalcularRentaCapitalRequest { UsuarioId = UsuarioId, Anio = 2026, Mes = 6 });
+		var (success, error, data) = await _service.CalcularAsync(UsuarioId,
+			new CalcularRentaCapitalRequest { Anio = 2026, Mes = 6 });
 
 		Assert.False(success);
 		Assert.Null(data);
@@ -224,8 +224,8 @@ public class CalculoRentaCapitalServiceTests
 			.Setup(r => r.GetCalculoExistenteAsync(UsuarioId, PeriodoId, TipoFormulario.D125))
 			.ReturnsAsync((CalculoFiscal?)null);
 
-		var (success, _, data) = await _service.CalcularAsync(
-			new CalcularRentaCapitalRequest { UsuarioId = UsuarioId, Anio = 2026, Mes = 6 });
+		var (success, _, data) = await _service.CalcularAsync(UsuarioId,
+			new CalcularRentaCapitalRequest { Anio = 2026, Mes = 6 });
 
 		Assert.True(success);
 		Assert.Equal(300_000m, data!.DeduccionAplicada);
@@ -248,8 +248,8 @@ public class CalculoRentaCapitalServiceTests
 			.Setup(r => r.GetGastosDeduciblesDelPeriodoAsync(UsuarioId, 2026, 6))
 			.ReturnsAsync(new List<Gasto>());
 
-		var (success, _, data) = await _service.SimularAsync(
-			new SimularRegimenRequest { UsuarioId = UsuarioId, Anio = 2026, Mes = 6 });
+		var (success, _, data) = await _service.SimularAsync(UsuarioId,
+			new SimularRegimenRequest { Anio = 2026, Mes = 6 });
 
 		Assert.True(success);
 		Assert.Equal(RegimenTributario.CAPITAL_INMOBILIARIO.ToString(), data!.RegimenRecomendado);
@@ -272,8 +272,8 @@ public class CalculoRentaCapitalServiceTests
 			.Setup(r => r.GetGastosDeduciblesDelPeriodoAsync(UsuarioId, 2026, 6))
 			.ReturnsAsync(new List<Gasto> { CrearGastoValido(400_000m) });
 
-		var (success, _, data) = await _service.SimularAsync(
-			new SimularRegimenRequest { UsuarioId = UsuarioId, Anio = 2026, Mes = 6 });
+		var (success, _, data) = await _service.SimularAsync(UsuarioId,
+			new SimularRegimenRequest { Anio = 2026, Mes = 6 });
 
 		Assert.True(success);
 		Assert.Equal(RegimenTributario.UTILIDADES.ToString(), data!.RegimenRecomendado);
@@ -287,9 +287,8 @@ public class CalculoRentaCapitalServiceTests
 			.Setup(r => r.GetPerfilTributarioAsync(UsuarioId))
 			.ReturnsAsync(CrearPerfil(RegimenTributario.UTILIDADES));
 
-		var (success, error, _) = await _service.CambiarRegimenAsync(new CambiarRegimenTributarioRequest
+		var (success, error, _) = await _service.CambiarRegimenAsync(UsuarioId, new CambiarRegimenTributarioRequest
 		{
-			UsuarioId = UsuarioId,
 			NuevoRegimen = RegimenTributario.UTILIDADES,
 			Anio = 2026,
 			Mes = 6
@@ -310,9 +309,8 @@ public class CalculoRentaCapitalServiceTests
 			.Setup(r => r.GetGastosDeduciblesDelPeriodoAsync(UsuarioId, 2026, 6))
 			.ReturnsAsync(new List<Gasto>());
 
-		var (success, error, _) = await _service.CambiarRegimenAsync(new CambiarRegimenTributarioRequest
+		var (success, error, _) = await _service.CambiarRegimenAsync(UsuarioId, new CambiarRegimenTributarioRequest
 		{
-			UsuarioId = UsuarioId,
 			NuevoRegimen = RegimenTributario.UTILIDADES,
 			Anio = 2026,
 			Mes = 6
@@ -335,9 +333,8 @@ public class CalculoRentaCapitalServiceTests
 			.Setup(r => r.GetGastosDeduciblesDelPeriodoAsync(UsuarioId, 2026, 6))
 			.ReturnsAsync(new List<Gasto> { CrearGastoValido(300_000m) });
 
-		var (success, error, regimenActual) = await _service.CambiarRegimenAsync(new CambiarRegimenTributarioRequest
+		var (success, error, regimenActual) = await _service.CambiarRegimenAsync(UsuarioId, new CambiarRegimenTributarioRequest
 		{
-			UsuarioId = UsuarioId,
 			NuevoRegimen = RegimenTributario.UTILIDADES,
 			Anio = 2026,
 			Mes = 6

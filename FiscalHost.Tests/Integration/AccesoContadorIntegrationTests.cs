@@ -37,16 +37,14 @@ public class AccesoContadorIntegrationTests : IDisposable
         });
         await _db.SaveChangesAsync();
 
-        var invitacion = await _sut.InvitarAsync(new InvitarContadorRequest
+        var invitacion = await _sut.InvitarAsync(anfitrionId, new InvitarContadorRequest
         {
-            AnfitrionId = anfitrionId,
             CorreoContador = "contador@demo.com",
             PuedeVerIngresos = true
         });
 
-        await _sut.RevocarAsync(invitacion.data!.AccesoId, new RevocarAccesoContadorRequest
+        await _sut.RevocarAsync(invitacion.data!.AccesoId, anfitrionId, new RevocarAccesoContadorRequest
         {
-            AnfitrionId = anfitrionId,
             Justificacion = "Cambio de contador autorizado por el anfitrion."
         });
 

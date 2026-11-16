@@ -22,7 +22,7 @@ public class AuditoriaInalterableServiceTests
     [Fact]
     public async Task Registrar_CampoSensibleSinJustificacion_RetornaError()
     {
-        var result = await _sut.RegistrarAsync(new RegistrarAuditoriaRequest
+        var result = await _sut.RegistrarAsync(Guid.NewGuid(), new RegistrarAuditoriaRequest
         {
             Operacion = OperacionAuditoria.UPDATE,
             TablaAfectada = "usuario",
@@ -36,9 +36,8 @@ public class AuditoriaInalterableServiceTests
     [Fact]
     public async Task Registrar_CambioValido_GuardaAuditoria()
     {
-        var result = await _sut.RegistrarAsync(new RegistrarAuditoriaRequest
+        var result = await _sut.RegistrarAsync(Guid.NewGuid(), new RegistrarAuditoriaRequest
         {
-            UsuarioId = Guid.NewGuid(),
             Operacion = OperacionAuditoria.UPDATE,
             TablaAfectada = "perfil_tributario",
             RegistroId = Guid.NewGuid(),

@@ -28,9 +28,10 @@ public class AuditoriaInalterableIntegrationTests : IDisposable
     public async Task RegistrarYConsultarHistorial_RetornaOrdenCronologico()
     {
         var registroId = Guid.NewGuid();
+        var usuarioId = Guid.NewGuid();
 
-        await _sut.RegistrarAsync(BuildRequest(registroId, "valor-1"));
-        await _sut.RegistrarAsync(BuildRequest(registroId, "valor-2"));
+        await _sut.RegistrarAsync(usuarioId, BuildRequest(registroId, "valor-1"));
+        await _sut.RegistrarAsync(usuarioId, BuildRequest(registroId, "valor-2"));
 
         var historial = await _sut.ConsultarHistorialAsync(null, "usuario", registroId);
 
@@ -42,7 +43,8 @@ public class AuditoriaInalterableIntegrationTests : IDisposable
     public async Task ExportarHistorial_ConDatos_GeneraCsvBase64()
     {
         var registroId = Guid.NewGuid();
-        await _sut.RegistrarAsync(BuildRequest(registroId, "valor"));
+        var usuarioId = Guid.NewGuid();
+        await _sut.RegistrarAsync(usuarioId, BuildRequest(registroId, "valor"));
 
         var result = await _sut.ExportarHistorialAsync(null, "usuario", registroId);
 
