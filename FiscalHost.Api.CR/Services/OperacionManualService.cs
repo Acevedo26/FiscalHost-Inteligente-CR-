@@ -8,6 +8,7 @@ using FiscalHost.Api.CR.Models.Entities.Operations;
 using FiscalHost.Api.CR.Models.Enums.Audit;
 using FiscalHost.Api.CR.Models.Enums.Operations;
 using FiscalHost.Api.CR.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 namespace FiscalHost.Api.CR.Services;
 
@@ -296,9 +297,13 @@ public class OperacionManualService(
 
         if (Guid.TryParse(id, out var guidId))
         {
-            var reserva = await repository.GetReservaByIdAsync(guidId);
-            if (reserva != null)
+            // Optimistic concurrency: retry up to 3 times on conflict
+            for (int attempt = 0; attempt < 3; attempt++)
             {
+                var reserva = await repository.GetReservaByIdAsync(guidId);
+                if (reserva == null)
+                    return (false, "Reserva no encontrada.");
+
                 string valorAnterior = JsonSerializer.Serialize(new
                 {
                     reserva.MontoColones,
@@ -339,8 +344,18 @@ public class OperacionManualService(
                     Justificacion = razon
                 });
 
-                await repository.SaveChangesAsync();
-                return (true, null);
+                try
+                {
+                    await repository.SaveChangesAsync();
+                    return (true, null);
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (attempt == 2)
+                        return (false, "La reserva fue modificada por otro proceso. Intente nuevamente.");
+                    // Re-read entity with updated RowVersion for next attempt
+                    continue;
+                }
             }
         }
 

@@ -1,0 +1,168 @@
+name: CI/CD
+
+# ===========================================================================
+# Disparadores (on): qué eventos hacen correr este workflow
+# - push a main/develop: integra (build + tests); SOLO push a main despliega
+# - pull_request: cada PR recibe build+tests como check obligatorio
+# - workflow_dispatch: disparo manual desde la pestaña Actions de GitHub
+# ===========================================================================
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+# Permisos mínimos del GITHUB_TOKEN: el flujo solo lee el código.
+permissions:
+  contents: read
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Job 1: compilar, testear y empaquetar. Corre en push a main/develop y PRs.
+  # ---------------------------------------------------------------------------
+  build-test:
+    name: Build, tests y empaquetado
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Configurar .NET 8
+        uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      # Con reintentos: un parpadeo de red en NuGet no tira todo el run.
+      - name: Restaurar dependencias NuGet
+        run: |
+          for i in 1 2 3; do
+            dotnet restore FiscalHost.Tests/FiscalHost.Tests.csproj && exit 0
+            echo "::warning::Restore falló (intento $i de 3); reintentando en 10s"
+            sleep 10
+          done
+          echo "::error::dotnet restore falló tras 3 intentos"
+          exit 1
+
+      # El proyecto de tests referencia a la API por ProjectReference:
+      # compilar los tests compila la API también.
+      - name: Compilar API y tests (Release)
+        run: dotnet build FiscalHost.Tests/FiscalHost.Tests.csproj --no-restore -c Release
+
+      - name: Ejecutar tests unitarios
+        run: dotnet test FiscalHost.Tests/FiscalHost.Tests.csproj --no-build -c Release --logger "trx;LogFileName=results.trx" --results-directory ./results
+
+      # El gate exige tests con resultado Passed: ni 0 tests ni un suite
+      # 100% skipeado pueden ponerlo verde. Si el TRX no existe, n queda
+      # en 0 y el paso falla (nada de fail-open por archivo ausente).
+      - name: Exigir tests con resultado Passed
+        run: |
+          n=0
+          if [ -f results/results.trx ]; then
+            n=$(grep -c 'outcome="Passed"' results/results.trx || true)
+          fi
+          echo "Tests Passed: $n"
+          if [ "$n" -eq 0 ]; then
+            echo "::error::dotnet test no ejecutó ningún test con éxito (0 Passed); el gate no aprueba vacío"
+            exit 1
+          fi
+
+      # El reporte se sube AUNQUE falle (if: always): el log efímero no basta.
+      - name: Subir resultados de tests
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: test-results
+          path: results/
+          # Re-run de jobs fallidos: v4 es inmutable por run; overwrite evita
+          # el conflicto de nombre duplicado.
+          overwrite: true
+
+      # Se empaqueta UNA VEZ, en este mismo run y toolchain: es el único
+      # binario que puede llegar a producción.
+      - name: Empaquetar API (artefacto único)
+        run: dotnet publish FiscalHost.Api.CR/FiscalHost.Api.CR.csproj -c Release --no-build -o publish
+
+      - name: Subir artefacto de despliegue
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: api-pack
+          path: publish/
+          # Re-run de jobs fallidos: v4 es inmutable por run; overwrite evita
+          # el conflicto de nombre duplicado.
+          overwrite: true
+
+  # ---------------------------------------------------------------------------
+  # Job 2: deploy. Solo corre si build-test pasó y solo en push a main.
+  # Nunca despliega desde un PR ni desde develop.
+  # ---------------------------------------------------------------------------
+  deploy:
+    name: Deploy a Azure App Service
+    needs: build-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    # De a un deploy a la vez contra producción: el viejo nunca termina último.
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    # Puerta con cerradura: en Settings > Environments se agregan revisores
+    # obligatorios y políticas de rama antes de tocar producción.
+    environment: production
+    # ===========================================================================
+    # ROLLBACK (procedimiento manual): el smoke test DETECTA un deploy roto,
+    # no lo revierte. Para recuperar producción:
+    #   1. git revert <sha-del-commit-roto> && git push origin main
+    #      -> el push dispara un deploy nuevo; la concurrencia deploy-production
+    #         garantiza que nunca corran dos deploys a la vez.
+    #   2. Alternativa: descargar el artefacto api-pack del último run verde
+    #      (Actions > run > Artifacts) y desplegarlo manualmente con el
+    #      publish profile.
+    # Upgrade futuro: deployment slot "staging" + swap automático tras el smoke.
+    # ===========================================================================
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      # Se descarga EXACTAMENTE el binario que este run testeó y empaquetó.
+      - name: Descargar el artefacto testeado
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: api-pack
+          path: publish
+
+      # Requiere en el repo (Settings > Secrets and variables > Actions):
+      # - Secret: AZURE_WEBAPP_PUBLISH_PROFILE (XML del perfil de publicación)
+      # - Variable: AZURE_WEBAPP_NAME (nombre del App Service)
+      - name: Desplegar a Azure App Service
+        uses: azure/webapps-deploy@02a81bead70021f5284939794bcec79c271ab383 # v3
+        with:
+          app-name: ${{ vars.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: ./publish
+
+      # Deploy "verde" solo significa que el ZIP se subió. Si la app crashea
+      # al arrancar, la plataforma responde 503: eso es un deploy fallido.
+      # Solo 2xx/3xx del /health de la APLICACIÓN cuentan como vivo: un 403
+      # del front-end de Azure (app detenida, sin cuota) ya no pasa el gate.
+      # La URL va por env: del step (nunca interpolar ${{ vars.* }} en bash).
+      - name: Smoke test post-despliegue
+        env:
+          SMOKE_URL: https://${{ vars.AZURE_WEBAPP_NAME }}.azurewebsites.net/health
+        run: |
+          for i in 1 2 3 4 5; do
+            code=$(curl -s --max-time 10 --connect-timeout 5 -o /dev/null -w '%{http_code}' "$SMOKE_URL") || code=000
+            echo "Intento $i: HTTP $code"
+            case "$code" in
+              2*|3*) exit 0 ;;
+            esac
+            sleep 10
+          done
+          echo "::error::La app no responde tras el deploy (HTTP $code)"
+          exit 1

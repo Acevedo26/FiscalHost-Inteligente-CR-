@@ -105,6 +105,15 @@ public class Reserva
 
     [Column("metadata", TypeName = "jsonb")]
     public string Metadata { get; set; } = "{}";
+
+    [Timestamp]
+    [Column("row_version")]
+    public byte[] RowVersion { get; set; } = [];
+
+    public Reserva()
+    {
+        RowVersion = [];
+    }
 }
 
 

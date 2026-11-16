@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -103,7 +104,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add(new AuthorizeFilter());
-});
+})
+.AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -155,5 +157,13 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Liveness endpoint for the CI/CD post-deploy smoke test (unauthenticated, no DB access).
+// Reports the assembly version so a human can confirm the NEW deployment is serving.
+app.MapGet("/health", () => Results.Ok(new
+{
+    status = "healthy",
+    version = typeof(Program).Assembly.GetName().Version?.ToString() ?? "unknown"
+}));
 
 app.Run();

@@ -69,6 +69,36 @@ public class ClasificacionIngresoServiceTests
     }
 
     [Fact]
+    public async Task Clasificar_FechaSalidaAntesDeEntrada_RetornaError()
+    {
+        // Arrange: salida anterior a entrada
+        var request = BuildRequest(
+            fechaEntrada: DateTime.UtcNow,
+            fechaSalida: DateTime.UtcNow.AddDays(-1));
+
+        var (success, error, _) = await _sut.ClasificarAsync("anf-001", request);
+
+        Assert.False(success);
+        Assert.Contains("fecha", error!, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("salida", error!, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task Clasificar_FechaSalidaIgualAEntrada_RetornaError()
+    {
+        // Arrange: salida igual a entrada (0 días)
+        var request = BuildRequest(
+            fechaEntrada: DateTime.UtcNow,
+            fechaSalida: DateTime.UtcNow);
+
+        var (success, error, _) = await _sut.ClasificarAsync("anf-001", request);
+
+        Assert.False(success);
+        Assert.Contains("fecha", error!, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("salida", error!, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public async Task Reclasificar_SinJustificacion_RetornaError()
     {
         var request = new ReclasificacionIngresoRequest
@@ -113,12 +143,13 @@ public class ClasificacionIngresoServiceTests
 
     private static ClasificarIngresoRequest BuildRequest(
         DateTime? fechaEntrada = null,
+        DateTime? fechaSalida = null,
         decimal montoBruto = 1000,
         FuenteIngreso fuenteIngreso = FuenteIngreso.Nacional,
         bool tieneFacturaElectronicaNacional = false) => new()
     {
         FechaEntrada = fechaEntrada ?? DateTime.UtcNow.AddDays(-5),
-        FechaSalida = DateTime.UtcNow,
+        FechaSalida = fechaSalida ?? DateTime.UtcNow,
         MontoBruto = montoBruto,
         FuenteIngreso = fuenteIngreso,
         TieneFacturaElectronicaNacional = tieneFacturaElectronicaNacional,
