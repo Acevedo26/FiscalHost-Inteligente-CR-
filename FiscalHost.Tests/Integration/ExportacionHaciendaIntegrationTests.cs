@@ -42,9 +42,8 @@ public class ExportacionHaciendaIntegrationTests : IDisposable
         });
         await _db.SaveChangesAsync();
 
-        var result = await _sut.ExportarAsync(new ExportacionHaciendaRequest
+        var result = await _sut.ExportarAsync(usuarioId, new ExportacionHaciendaRequest
         {
-            UsuarioId = usuarioId,
             AnioFiscal = 2026,
             Mes = 2,
             Formato = "CSV",

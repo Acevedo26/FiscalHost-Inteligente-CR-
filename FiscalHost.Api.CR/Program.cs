@@ -158,4 +158,12 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// Liveness endpoint for the CI/CD post-deploy smoke test (unauthenticated, no DB access).
+// Reports the assembly version so a human can confirm the NEW deployment is serving.
+app.MapGet("/health", () => Results.Ok(new
+{
+    status = "healthy",
+    version = typeof(Program).Assembly.GetName().Version?.ToString() ?? "unknown"
+}));
+
 app.Run();

@@ -83,8 +83,8 @@ public class SancionAutoliquidacionServiceTests
 			.Setup(r => r.GetObligacionPendienteAsync(UsuarioId, ObligacionId))
 			.ReturnsAsync((ObligacionTributaria?)null);
 
-		var (success, error, data) = await _service.CalcularAsync(
-			new CalcularSancionRequest { UsuarioId = UsuarioId, ObligacionId = ObligacionId });
+		var (success, error, data) = await _service.CalcularAsync(UsuarioId,
+			new CalcularSancionRequest { ObligacionId = ObligacionId });
 
 		Assert.False(success);
 		Assert.Null(data);
@@ -98,8 +98,8 @@ public class SancionAutoliquidacionServiceTests
 			.Setup(r => r.GetObligacionPendienteAsync(UsuarioId, ObligacionId))
 			.ReturnsAsync(CrearObligacion(0m));
 
-		var (success, error, data) = await _service.CalcularAsync(
-			new CalcularSancionRequest { UsuarioId = UsuarioId, ObligacionId = ObligacionId });
+		var (success, error, data) = await _service.CalcularAsync(UsuarioId,
+			new CalcularSancionRequest { ObligacionId = ObligacionId });
 
 		Assert.False(success);
 		Assert.Null(data);
@@ -117,8 +117,8 @@ public class SancionAutoliquidacionServiceTests
 			.Setup(r => r.GetPeriodoConSalarioBaseAsync(2025, TipoFormulario.D176))
 			.ReturnsAsync((PeriodoFiscal?)null);
 
-		var (success, error, data) = await _service.CalcularAsync(
-			new CalcularSancionRequest { UsuarioId = UsuarioId, ObligacionId = ObligacionId });
+		var (success, error, data) = await _service.CalcularAsync(UsuarioId,
+			new CalcularSancionRequest { ObligacionId = ObligacionId });
 
 		Assert.False(success);
 		Assert.Null(data);
@@ -146,8 +146,8 @@ public class SancionAutoliquidacionServiceTests
 			.Setup(r => r.GetSancionExistenteAsync(ObligacionId))
 			.ReturnsAsync((SancionAutoliquidacion?)null);
 
-		var (success, error, data) = await _service.CalcularAsync(
-			new CalcularSancionRequest { UsuarioId = UsuarioId, ObligacionId = ObligacionId });
+		var (success, error, data) = await _service.CalcularAsync(UsuarioId,
+			new CalcularSancionRequest { ObligacionId = ObligacionId });
 
 		Assert.True(success);
 		Assert.Null(error);
@@ -185,8 +185,8 @@ public class SancionAutoliquidacionServiceTests
 			.Setup(r => r.GetSancionExistenteAsync(ObligacionId))
 			.ReturnsAsync((SancionAutoliquidacion?)null);
 
-		var (success, _, data) = await _service.CalcularAsync(
-			new CalcularSancionRequest { UsuarioId = UsuarioId, ObligacionId = ObligacionId });
+		var (success, _, data) = await _service.CalcularAsync(UsuarioId,
+			new CalcularSancionRequest { ObligacionId = ObligacionId });
 
 		Assert.True(success);
 		Assert.Equal("OMISION_DECLARACION", data!.TipoSancion);
@@ -211,8 +211,8 @@ public class SancionAutoliquidacionServiceTests
 			.Setup(r => r.GetSancionExistenteAsync(ObligacionId))
 			.ReturnsAsync((SancionAutoliquidacion?)null);
 
-		var (success, _, data) = await _service.CalcularAsync(
-			new CalcularSancionRequest { UsuarioId = UsuarioId, ObligacionId = ObligacionId });
+		var (success, _, data) = await _service.CalcularAsync(UsuarioId,
+			new CalcularSancionRequest { ObligacionId = ObligacionId });
 
 		Assert.True(success);
 		Assert.Equal(5_000m, data!.InteresesAcumulados);
@@ -246,8 +246,8 @@ public class SancionAutoliquidacionServiceTests
 			.Setup(r => r.GetSancionExistenteAsync(ObligacionId))
 			.ReturnsAsync(sancionExistente);
 
-		var (success, _, data) = await _service.CalcularAsync(
-			new CalcularSancionRequest { UsuarioId = UsuarioId, ObligacionId = ObligacionId });
+		var (success, _, data) = await _service.CalcularAsync(UsuarioId,
+			new CalcularSancionRequest { ObligacionId = ObligacionId });
 
 		Assert.True(success);
 		Assert.Equal(sancionExistente.SancionId, data!.SancionId);

@@ -23,9 +23,8 @@ public class AccesoContadorServiceTests
     [Fact]
     public async Task Invitar_CorreoInvalido_RetornaError()
     {
-        var result = await _sut.InvitarAsync(new InvitarContadorRequest
+        var result = await _sut.InvitarAsync(Guid.NewGuid(), new InvitarContadorRequest
         {
-            AnfitrionId = Guid.NewGuid(),
             CorreoContador = "correo-invalido"
         });
 
@@ -44,9 +43,8 @@ public class AccesoContadorServiceTests
             RolPrincipal = RolUsuario.ANFITRION
         });
 
-        var result = await _sut.InvitarAsync(new InvitarContadorRequest
+        var result = await _sut.InvitarAsync(anfitrionId, new InvitarContadorRequest
         {
-            AnfitrionId = anfitrionId,
             CorreoContador = "contador@demo.com",
             PuedeVerIngresos = true,
             PuedeVerGastos = false,
@@ -64,9 +62,8 @@ public class AccesoContadorServiceTests
     [Fact]
     public async Task Revocar_SinJustificacion_RetornaError()
     {
-        var result = await _sut.RevocarAsync(Guid.NewGuid(), new RevocarAccesoContadorRequest
+        var result = await _sut.RevocarAsync(Guid.NewGuid(), Guid.NewGuid(), new RevocarAccesoContadorRequest
         {
-            AnfitrionId = Guid.NewGuid(),
             Justificacion = ""
         });
 

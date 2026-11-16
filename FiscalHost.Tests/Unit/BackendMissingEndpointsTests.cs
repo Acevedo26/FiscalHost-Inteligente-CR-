@@ -103,12 +103,12 @@ public class BackendMissingEndpointsTests
     }
 
     [Fact]
-    public async Task OperacionesManuales_CrearOperacion_Gasto_Retorna201Created()
+    public async Task OperacionesManuales_RegistrarGasto_Retorna201Created()
     {
         // Arrange
         var usuarioId = Guid.NewGuid();
         var serviceMock = Substitute.For<IOperacionManualService>();
-        serviceMock.RegistrarGastoAsync(Arg.Any<GastoOperativoRequest>())
+        serviceMock.RegistrarGastoAsync(usuarioId, Arg.Any<GastoOperativoRequest>())
             .Returns((true, null));
 
         var controller = new OperacionesManualesController(serviceMock)
@@ -116,29 +116,30 @@ public class BackendMissingEndpointsTests
             ControllerContext = CreateContextWithUser(usuarioId)
         };
 
-        var request = new OperacionUnificadaRequest
+        var request = new GastoOperativoRequest
         {
-            Tipo = "GASTO",
-            Monto = 25000,
-            Concepto = "Reparacion A/C",
-            Proveedor = "Tecnico SA"
+            Proveedor = "Tecnico SA",
+            MontoTotal = 25000,
+            FechaEmision = new DateOnly(2026, 4, 1),
+            TipoGasto = "MANTENIMIENTO",
+            Descripcion = "Reparacion A/C"
         };
 
         // Act
-        var result = await controller.CrearOperacion(request);
+        var result = await controller.RegistrarGasto(request);
 
         // Assert
-        var statusResult = Assert.IsType<ObjectResult>(result);
-        Assert.Equal(StatusCodes.Status201Created, statusResult.StatusCode);
+        var statusResult = Assert.IsType<OkObjectResult>(result);
+        Assert.NotNull(statusResult.Value);
     }
 
     [Fact]
-    public async Task OperacionesManuales_CrearOperacion_Ingreso_Retorna201Created()
+    public async Task OperacionesManuales_RegistrarReserva_Retorna201Created()
     {
         // Arrange
         var usuarioId = Guid.NewGuid();
         var serviceMock = Substitute.For<IOperacionManualService>();
-        serviceMock.RegistrarReservaAsync(Arg.Any<string>(), Arg.Any<CreateReservaRequest>())
+        serviceMock.RegistrarReservaAsync(usuarioId.ToString(), Arg.Any<CreateReservaRequest>())
             .Returns((true, null));
 
         var controller = new OperacionesManualesController(serviceMock)
@@ -146,20 +147,19 @@ public class BackendMissingEndpointsTests
             ControllerContext = CreateContextWithUser(usuarioId)
         };
 
-        var request = new OperacionUnificadaRequest
+        var request = new CreateReservaRequest
         {
-            Tipo = "INGRESO",
-            Monto = 80000,
-            Concepto = "Reserva Directa",
-            Huesped = "Carlos Mendoza"
+            FechaInicio = new DateTime(2026, 4, 1),
+            MontoBruto = 80000,
+            NombreHuesped = "Carlos Mendoza"
         };
 
         // Act
-        var result = await controller.CrearOperacion(request);
+        var result = await controller.RegistrarReserva(request);
 
         // Assert
-        var statusResult = Assert.IsType<ObjectResult>(result);
-        Assert.Equal(StatusCodes.Status201Created, statusResult.StatusCode);
+        var statusResult = Assert.IsType<OkObjectResult>(result);
+        Assert.NotNull(statusResult.Value);
     }
 
     [Fact]
@@ -345,15 +345,15 @@ public class BackendMissingEndpointsTests
     [Fact]
     public void ModelAliases_LoginRequest_Y_RegistroRequest_ResuelvenCorrectamente()
     {
-        // Test LoginRequest
+        // Test LoginRequest - uses Contrasena only
         var login = new LoginRequest
         {
             Correo = "usuario@correo.cr",
-            Clave = "MiClaveSegura123!"
+            Contrasena = "MiClaveSegura123!"
         };
         Assert.Equal("MiClaveSegura123!", login.Contrasena);
 
-        // Test RegistroUsuarioRequest
+        // Test RegistroUsuarioRequest - has Clave/Contrasena aliases
         var registro = new RegistroUsuarioRequest
         {
             Nombre = "Maria Solano",

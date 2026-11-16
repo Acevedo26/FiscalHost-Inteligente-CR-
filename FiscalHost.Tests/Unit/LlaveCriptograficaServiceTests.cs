@@ -27,9 +27,9 @@ public class LlaveCriptograficaServiceTests
     public async Task CargarLlave_ArchivoNoP12_RetornaError()
     {
         var archivo = CrearFormFile("llave.pfx", [0x01]);
-        var request = new CargarLlaveRequest { AnfitrionId = "ANF001", Archivo = archivo, Contrasena = "pass" };
+        var request = new CargarLlaveRequest { Archivo = archivo, Contrasena = "pass" };
 
-        var (success, error, _) = await _service.CargarLlaveAsync(request);
+        var (success, error, _) = await _service.CargarLlaveAsync("ANF001", request);
 
         Assert.False(success);
         Assert.Contains(".p12", error);
@@ -39,9 +39,9 @@ public class LlaveCriptograficaServiceTests
     public async Task CargarLlave_CertificadoInvalido_RetornaError()
     {
         var archivo = CrearFormFile("llave.p12", [0x01, 0x02, 0x03]);
-        var request = new CargarLlaveRequest { AnfitrionId = "ANF001", Archivo = archivo, Contrasena = "pass" };
+        var request = new CargarLlaveRequest { Archivo = archivo, Contrasena = "pass" };
 
-        var (success, error, _) = await _service.CargarLlaveAsync(request);
+        var (success, error, _) = await _service.CargarLlaveAsync("ANF001", request);
 
         Assert.False(success);
         Assert.NotNull(error);
@@ -66,12 +66,11 @@ public class LlaveCriptograficaServiceTests
 
         var request = new ActualizarContrasenaRequest
         {
-            AnfitrionId = "ANF001",
             ContrasenaActual = "contrasena-erronea",
             ContrasenaNueva = "nueva"
         };
 
-        var (success, error) = await _service.ActualizarContrasenaAsync(request);
+        var (success, error) = await _service.ActualizarContrasenaAsync("ANF001", request);
 
         Assert.False(success);
         Assert.Contains("incorrecta", error, StringComparison.OrdinalIgnoreCase);
@@ -83,12 +82,11 @@ public class LlaveCriptograficaServiceTests
         _repo.GetByAnfitrionIdAsync("ANF999").Returns((LlaveCriptografica?)null);
         var request = new ActualizarContrasenaRequest
         {
-            AnfitrionId = "ANF999",
             ContrasenaActual = "vieja",
             ContrasenaNueva = "nueva"
         };
 
-        var (success, error) = await _service.ActualizarContrasenaAsync(request);
+        var (success, error) = await _service.ActualizarContrasenaAsync("ANF999", request);
 
         Assert.False(success);
         Assert.Contains("no se encontró", error, StringComparison.OrdinalIgnoreCase);

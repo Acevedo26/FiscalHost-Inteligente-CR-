@@ -42,7 +42,7 @@ public class ConfiguracionTributariaIntegrationTests : IDisposable
     public async Task GuardarYObtener_ConfiguracionNueva_PersisteTodosLosCampos()
     {
         string anfitrionId = Guid.NewGuid().ToString();
-        var (success, _, _) = await _sut.GuardarConfiguracionAsync(BuildRequest(anfitrionId: anfitrionId));
+        var (success, _, _) = await _sut.GuardarConfiguracionAsync(anfitrionId, BuildRequest());
         var recuperada = await _sut.GetConfiguracionAsync(anfitrionId);
 
         Assert.True(success);
@@ -60,7 +60,7 @@ public class ConfiguracionTributariaIntegrationTests : IDisposable
     public async Task CodigoInvalido_NoPersisteDatos()
     {
         string anfitrionId = Guid.NewGuid().ToString();
-        var (success, _, _) = await _sut.GuardarConfiguracionAsync(BuildRequest(anfitrionId: anfitrionId, codigoActividad: "999999"));
+        var (success, _, _) = await _sut.GuardarConfiguracionAsync(anfitrionId, BuildRequest(codigoActividad: "999999"));
 
         Assert.False(success);
         Assert.Empty(_db.PerfilesTributarios.Where(c => c.UsuarioId.ToString() == anfitrionId));
@@ -71,7 +71,7 @@ public class ConfiguracionTributariaIntegrationTests : IDisposable
     public async Task NiseInvalido_NoPersisteDatos()
     {
         string anfitrionId = Guid.NewGuid().ToString();
-        var (success, _, _) = await _sut.GuardarConfiguracionAsync(BuildRequest(anfitrionId: anfitrionId, nise: "123"));
+        var (success, _, _) = await _sut.GuardarConfiguracionAsync(anfitrionId, BuildRequest(nise: "123"));
 
         Assert.False(success);
         Assert.Empty(_db.PerfilesTributarios.Where(c => c.UsuarioId.ToString() == anfitrionId));
@@ -82,8 +82,8 @@ public class ConfiguracionTributariaIntegrationTests : IDisposable
     public async Task ActualizacionSinCambioActividad_NoGeneraAuditoria()
     {
         string anfitrionId = Guid.NewGuid().ToString();
-        await _sut.GuardarConfiguracionAsync(BuildRequest(anfitrionId: anfitrionId));
-        await _sut.GuardarConfiguracionAsync(BuildRequest(anfitrionId: anfitrionId, direccion: "Cartago, Costa Rica"));
+        await _sut.GuardarConfiguracionAsync(anfitrionId, BuildRequest());
+        await _sut.GuardarConfiguracionAsync(anfitrionId, BuildRequest(direccion: "Cartago, Costa Rica"));
 
         var config = _db.PerfilesTributarios.First(c => c.UsuarioId.ToString() == anfitrionId);
         Assert.Empty(_db.AuditoriasConfiguracion.Where(a =>
@@ -93,12 +93,10 @@ public class ConfiguracionTributariaIntegrationTests : IDisposable
     public void Dispose() => _db.Dispose();
 
     private static ConfiguracionTributariaRequest BuildRequest(
-        string? anfitrionId = null,
         string codigoActividad = "551001",
         string direccion = "San José, Costa Rica",
         string nise = "1234567890") => new()
     {
-        AnfitrionId = anfitrionId ?? Guid.NewGuid().ToString(),
         CodigoActividad = codigoActividad,
         DireccionFiscal = direccion,
         Nise = nise

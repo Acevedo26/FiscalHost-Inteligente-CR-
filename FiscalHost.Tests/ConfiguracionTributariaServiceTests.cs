@@ -29,7 +29,7 @@ public class ConfiguracionTributariaServiceTests
         _actividadRepo.GetByCodigoAsync("999999").Returns((CatalogoActividadEconomica?)null);
         var request = BuildRequest(codigoActividad: "999999");
 
-        var (success, error, data) = await _sut.GuardarConfiguracionAsync(request);
+        var (success, error, data) = await _sut.GuardarConfiguracionAsync("anf-001", request);
 
         Assert.False(success);
         Assert.Contains("999999", error);
@@ -43,7 +43,7 @@ public class ConfiguracionTributariaServiceTests
         _actividadRepo.GetByCodigoAsync("551001").Returns(ActividadValida);
         var request = BuildRequest(nise: "123"); // menos de 10 dígitos
 
-        var (success, error, data) = await _sut.GuardarConfiguracionAsync(request);
+        var (success, error, data) = await _sut.GuardarConfiguracionAsync("anf-001", request);
 
         Assert.False(success);
         Assert.Contains("NISE", error);
@@ -59,7 +59,7 @@ public class ConfiguracionTributariaServiceTests
 
         var request = BuildRequest();
 
-        var (success, error, data) = await _sut.GuardarConfiguracionAsync(request);
+        var (success, error, data) = await _sut.GuardarConfiguracionAsync("anf-001", request);
 
         Assert.True(success);
         Assert.Null(error);
@@ -86,7 +86,7 @@ public class ConfiguracionTributariaServiceTests
 
         var request = BuildRequest(codigoActividad: "682001");
 
-        var (success, _, data) = await _sut.GuardarConfiguracionAsync(request);
+        var (success, _, data) = await _sut.GuardarConfiguracionAsync("anf-001", request);
 
         Assert.True(success);
         Assert.NotNull(data!.Advertencia);
@@ -108,7 +108,7 @@ public class ConfiguracionTributariaServiceTests
         };
         _configRepo.GetByAnfitrionIdAsync("anf-001").Returns(existing);
 
-        await _sut.GuardarConfiguracionAsync(BuildRequest(codigoActividad: "682001"));
+        await _sut.GuardarConfiguracionAsync("anf-001", BuildRequest(codigoActividad: "682001"));
 
         await _configRepo.Received(1).AddAuditoriaAsync(Arg.Is<AuditoriaConfiguracion>(a =>
             a.Campo == "CAMBIO_ACTIVIDAD" &&
@@ -130,7 +130,7 @@ public class ConfiguracionTributariaServiceTests
         };
         _configRepo.GetByAnfitrionIdAsync("anf-001").Returns(existing);
 
-        var (_, _, data) = await _sut.GuardarConfiguracionAsync(BuildRequest());
+        var (_, _, data) = await _sut.GuardarConfiguracionAsync("anf-001", BuildRequest());
 
         Assert.Null(data!.Advertencia);
     }
@@ -148,12 +148,10 @@ public class ConfiguracionTributariaServiceTests
     }
 
     private static ConfiguracionTributariaRequest BuildRequest(
-        string anfitrionId = "anf-001",
         string codigoActividad = "551001",
         string direccion = "San José, Costa Rica",
         string nise = "1234567890") => new()
     {
-        AnfitrionId = anfitrionId,
         CodigoActividad = codigoActividad,
         DireccionFiscal = direccion,
         Nise = nise

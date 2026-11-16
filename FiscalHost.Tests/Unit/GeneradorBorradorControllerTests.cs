@@ -15,7 +15,6 @@ public class GeneradorBorradorControllerTests
     public async Task GetBorradorD104_UsesAuthenticatedUserInsteadOfRequestUserId()
     {
         var authenticatedUserId = Guid.NewGuid();
-        var requestUserId = Guid.NewGuid();
         var serviceMock = new Mock<IGeneradorBorradorService>();
         var expected = new BorradorD104Dto();
 
@@ -27,7 +26,6 @@ public class GeneradorBorradorControllerTests
 
         var result = await controller.GetBorradorD104(new GenerarBorradorD104Request
         {
-            UsuarioId = requestUserId,
             Anio = 2026,
             Mes = 1
         });
@@ -36,16 +34,12 @@ public class GeneradorBorradorControllerTests
         serviceMock.Verify(
             service => service.GenerarD104Async(authenticatedUserId, 2026, 1),
             Times.Once);
-        serviceMock.Verify(
-            service => service.GenerarD104Async(requestUserId, 2026, 1),
-            Times.Never);
     }
 
     [Fact]
     public async Task GetBorradorD125_UsesAuthenticatedUserInsteadOfRequestUserId()
     {
         var authenticatedUserId = Guid.NewGuid();
-        var requestUserId = Guid.NewGuid();
         var serviceMock = new Mock<IGeneradorBorradorService>();
         var expected = new BorradorD125Dto();
 
@@ -57,7 +51,6 @@ public class GeneradorBorradorControllerTests
 
         var result = await controller.GetBorradorD125(new GenerarBorradorD125Request
         {
-            UsuarioId = requestUserId,
             Anio = 2026,
             RegimenUtilidades = true
         });
@@ -66,9 +59,6 @@ public class GeneradorBorradorControllerTests
         serviceMock.Verify(
             service => service.GenerarD125Async(authenticatedUserId, 2026, true),
             Times.Once);
-        serviceMock.Verify(
-            service => service.GenerarD125Async(requestUserId, 2026, true),
-            Times.Never);
     }
 
     [Fact]
@@ -79,7 +69,6 @@ public class GeneradorBorradorControllerTests
 
         var result = await controller.GetBorradorD104(new GenerarBorradorD104Request
         {
-            UsuarioId = Guid.NewGuid(),
             Anio = 2026,
             Mes = 1
         });
@@ -98,7 +87,6 @@ public class GeneradorBorradorControllerTests
 
         var result = await controller.GetBorradorD104(new GenerarBorradorD104Request
         {
-            UsuarioId = Guid.NewGuid(),
             Anio = 2026,
             Mes = 1
         });
@@ -117,7 +105,6 @@ public class GeneradorBorradorControllerTests
 
         var result = await controller.GetBorradorD125(new GenerarBorradorD125Request
         {
-            UsuarioId = Guid.NewGuid(),
             Anio = 2026,
             RegimenUtilidades = true
         });
@@ -136,7 +123,6 @@ public class GeneradorBorradorControllerTests
 
         var result = await controller.GetBorradorD125(new GenerarBorradorD125Request
         {
-            UsuarioId = Guid.NewGuid(),
             Anio = 2026,
             RegimenUtilidades = true
         });
