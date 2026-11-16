@@ -2,12 +2,14 @@ using FiscalHost.Api.CR.Extensions;
 using FiscalHost.Api.CR.Models.DTOs.Operations.Requests;
 using FiscalHost.Api.CR.Models.Enums.Operations;
 using FiscalHost.Api.CR.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FiscalHost.Api.CR.Controllers;
 
 [ApiController]
 [Route("api/operaciones-manuales")]
+[Authorize]
 public class OperacionesManualesController(
     IOperacionManualService service) : ControllerBase
 {
