@@ -29,7 +29,7 @@ public class ExportacionHaciendaServiceTests
         _repository.GetGastosAsync(usuarioId, 2026, 1)
             .Returns([]);
 
-        var result = await _sut.ExportarAsync(BuildRequest(usuarioId, "XML"));
+        var result = await _sut.ExportarAsync(usuarioId, BuildRequest(usuarioId, "XML"));
 
         Assert.True(result.Success);
         Assert.Equal("application/xml", result.TipoMime);
@@ -47,7 +47,7 @@ public class ExportacionHaciendaServiceTests
         _repository.GetGastosAsync(usuarioId, 2026, 1)
             .Returns([BuildGasto(usuarioId)]);
 
-        var result = await _sut.ExportarAsync(BuildRequest(usuarioId, "CSV", "MOVIMIENTOS"));
+        var result = await _sut.ExportarAsync(usuarioId, BuildRequest(usuarioId, "CSV", "MOVIMIENTOS"));
 
         Assert.True(result.Success);
         Assert.Equal("text/csv", result.TipoMime);
@@ -63,7 +63,7 @@ public class ExportacionHaciendaServiceTests
         _repository.GetReservasAsync(usuarioId, 2026, 1).Returns([]);
         _repository.GetGastosAsync(usuarioId, 2026, 1).Returns([]);
 
-        var result = await _sut.ExportarAsync(BuildRequest(usuarioId, "XML"));
+        var result = await _sut.ExportarAsync(usuarioId, BuildRequest(usuarioId, "XML"));
 
         Assert.False(result.Success);
         Assert.Contains("No existen datos", result.Mensaje);
@@ -78,9 +78,8 @@ public class ExportacionHaciendaServiceTests
         _repository.GetGastosAsync(usuarioId, 2026, 1)
             .Returns([]);
 
-        var result = await _sut.ExportarAsync(new ExportacionHaciendaRequest
+        var result = await _sut.ExportarAsync(usuarioId, new ExportacionHaciendaRequest
         {
-            UsuarioId = usuarioId,
             AnioFiscal = 2026,
             Mes = 1,
             Formato = "XML",
@@ -99,7 +98,6 @@ public class ExportacionHaciendaServiceTests
         string formato,
         string tipoContenido = "DECLARACION") => new()
     {
-        UsuarioId = usuarioId,
         AnioFiscal = 2026,
         Mes = 1,
         Formato = formato,

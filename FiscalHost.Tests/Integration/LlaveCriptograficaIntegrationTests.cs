@@ -35,12 +35,11 @@ public class LlaveCriptograficaIntegrationTests : IDisposable
     {
         var request = new CargarLlaveRequest
         {
-            AnfitrionId = "ANF001",
             Archivo = CrearFormFile("cert.pfx", [0x01]),
             Contrasena = "pass"
         };
 
-        var (success, _, _) = await _service.CargarLlaveAsync(request);
+        var (success, _, _) = await _service.CargarLlaveAsync("ANF001", request);
 
         Assert.False(success);
         Assert.Empty(_db.LlavesCriptograficas);
@@ -51,12 +50,11 @@ public class LlaveCriptograficaIntegrationTests : IDisposable
     {
         var request = new CargarLlaveRequest
         {
-            AnfitrionId = "ANF001",
             Archivo = CrearFormFile("cert.p12", [0x00, 0x01, 0x02]),
             Contrasena = "pass"
         };
 
-        var (success, error, _) = await _service.CargarLlaveAsync(request);
+        var (success, error, _) = await _service.CargarLlaveAsync("ANF001", request);
 
         Assert.False(success);
         Assert.NotNull(error);

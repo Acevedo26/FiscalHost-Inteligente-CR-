@@ -26,7 +26,7 @@ public class ClasificacionIngresoIntegrationTests : IDisposable
     [Fact]
     public async Task ClasificarYPersistir_IngresoValido_GuardaClasificacion()
     {
-        var (success, _, data) = await _sut.ClasificarAsync(BuildRequest());
+        var (success, _, data) = await _sut.ClasificarAsync("anf-integ-006", BuildRequest());
 
         Assert.True(success);
         Assert.NotNull(data);
@@ -37,11 +37,10 @@ public class ClasificacionIngresoIntegrationTests : IDisposable
     [Fact]
     public async Task Reclasificar_ConJustificacion_GuardaAuditoria()
     {
-        var (_, _, data) = await _sut.ClasificarAsync(BuildRequest());
+        var (_, _, data) = await _sut.ClasificarAsync("anf-integ-006", BuildRequest());
 
-        await _sut.ReclasificarAsync(data!.Id, new ReclasificacionIngresoRequest
+        await _sut.ReclasificarAsync(data!.Id, Guid.NewGuid(), new ReclasificacionIngresoRequest
         {
-            UsuarioId = "usr-001",
             ClasificacionIva = ClasificacionIva.Exento,
             Justificacion = "Ajuste validado por documento de respaldo."
         });
@@ -56,7 +55,6 @@ public class ClasificacionIngresoIntegrationTests : IDisposable
 
     private static ClasificarIngresoRequest BuildRequest() => new()
     {
-        AnfitrionId = "anf-integ-006",
         FechaEntrada = DateTime.UtcNow.AddDays(-7),
         FechaSalida = DateTime.UtcNow,
         MontoBruto = 1000,

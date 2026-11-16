@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using FiscalHost.Api.CR.Models.Enums.Operations;
 using Xunit;
 
@@ -6,10 +7,13 @@ namespace FiscalHost.Tests.Serialization;
 
 public class EnumSerializationTests
 {
+    // Espeja las opciones JSON de la API: Program.cs registra JsonStringEnumConverter
+    // globalmente vía AddJsonOptions, por lo que los enums se serializan como string.
     private readonly JsonSerializerOptions _options = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = true
+        WriteIndented = true,
+        Converters = { new JsonStringEnumConverter() }
     };
 
     [Fact]
