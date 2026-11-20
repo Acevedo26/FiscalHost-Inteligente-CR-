@@ -71,10 +71,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
         // Operations
         modelBuilder.Entity<Reserva>().ToTable("reserva");
-        modelBuilder.Entity<Reserva>()
-            .Property(r => r.RowVersion)
-            .IsRowVersion()
-            .ValueGeneratedOnAddOrUpdate();
         modelBuilder.Entity<Gasto>().ToTable("gasto");
         modelBuilder.Entity<Gasto>()
             .Property(g => g.MontoNeto)
