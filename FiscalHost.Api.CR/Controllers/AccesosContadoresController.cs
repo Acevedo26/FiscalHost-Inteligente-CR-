@@ -78,6 +78,18 @@ public class AccesosContadoresController(
             : UnprocessableEntity(new { mensaje = error });
     }
 
+    [HttpDelete("{accesoId:guid}")]
+    public async Task<IActionResult> Eliminar(
+        Guid accesoId,
+        [FromQuery] string justificacion)
+    {
+        var anfitrionId = User.GetUsuarioId();
+        var (success, error) = await service.EliminarAsync(accesoId, anfitrionId, justificacion);
+        return success
+            ? Ok(new { mensaje = "Acceso de contador eliminado correctamente." })
+            : UnprocessableEntity(new { mensaje = error });
+    }
+
     [HttpPost("procesar-expiraciones")]
     public async Task<IActionResult> ProcesarExpiraciones()
     {
