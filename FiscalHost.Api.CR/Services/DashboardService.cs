@@ -1,9 +1,6 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using FiscalHost.Api.CR.Data;
 using FiscalHost.Api.CR.Models.DTOs.Dashboard;
+using Microsoft.EntityFrameworkCore;
 
 namespace FiscalHost.Api.CR.Services;
 
@@ -21,12 +18,12 @@ public class DashboardService : IDashboardService
         var response = new DashboardResponseDto();
 
         // Npgsql requiere que los DateTimes sean UTC al consultar columnas 'timestamp with time zone'
-        var fechaInicioUtc = fechaInicio.Kind == DateTimeKind.Unspecified 
-            ? DateTime.SpecifyKind(fechaInicio, DateTimeKind.Utc) 
+        var fechaInicioUtc = fechaInicio.Kind == DateTimeKind.Unspecified
+            ? DateTime.SpecifyKind(fechaInicio, DateTimeKind.Utc)
             : fechaInicio.ToUniversalTime();
 
-        var fechaFinUtc = fechaFin.Kind == DateTimeKind.Unspecified 
-            ? DateTime.SpecifyKind(fechaFin, DateTimeKind.Utc) 
+        var fechaFinUtc = fechaFin.Kind == DateTimeKind.Unspecified
+            ? DateTime.SpecifyKind(fechaFin, DateTimeKind.Utc)
             : fechaFin.ToUniversalTime();
 
         // 1. Fetch data with LINQ
@@ -35,9 +32,9 @@ public class DashboardService : IDashboardService
             .ToListAsync();
 
         var gastos = await _context.Gastos
-            .Where(g => g.UsuarioId == usuarioId && 
-                        g.FechaEmision >= DateOnly.FromDateTime(fechaInicio) && 
-                        g.FechaEmision <= DateOnly.FromDateTime(fechaFin) && 
+            .Where(g => g.UsuarioId == usuarioId &&
+                        g.FechaEmision >= DateOnly.FromDateTime(fechaInicio) &&
+                        g.FechaEmision <= DateOnly.FromDateTime(fechaFin) &&
                         g.DeletedAt == null)
             .ToListAsync();
 
@@ -61,7 +58,7 @@ public class DashboardService : IDashboardService
         decimal ivaNeto = Math.Max(0, ivaRecaudado - ivaSoportadoValido);
         decimal utilidad = Math.Max(0, ingresosBrutos - gastosTotales);
         decimal rentaEstimada = utilidad * 0.15m;
-        
+
         response.Metricas.IngresosBrutos = ingresosBrutos;
         response.Metricas.ImpuestosEstimados = ivaNeto + rentaEstimada;
         response.Metricas.IvaDebito = ivaRecaudado;
@@ -116,7 +113,7 @@ public class DashboardService : IDashboardService
                 decimal mesUtilidad = Math.Max(0, mesIngresos - mesGastos);
                 decimal mesRenta = mesUtilidad * 0.15m;
                 decimal mesImpuestos = mesIvaNeto + mesRenta;
-                
+
                 response.EvolucionMensual.Add(new DashboardEvolutionDto
                 {
                     Anio = periodo.Year,

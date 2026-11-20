@@ -353,7 +353,7 @@ public class OperacionManualService(
                 {
                     if (attempt == 2)
                         return (false, "La reserva fue modificada por otro proceso. Intente nuevamente.");
-                    // Re-read entity with updated RowVersion for next attempt
+                    // Re-read entity for next attempt
                     continue;
                 }
             }
