@@ -2,11 +2,6 @@
 using System;
 using System.Net;
 using FiscalHost.Api.CR.Data;
-using FiscalHost.Api.CR.Models.Enums.Audit;
-using FiscalHost.Api.CR.Models.Enums.Communication;
-using FiscalHost.Api.CR.Models.Enums.Identity;
-using FiscalHost.Api.CR.Models.Enums.Operations;
-using FiscalHost.Api.CR.Models.Enums.TaxIntelligence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
@@ -24,31 +19,10 @@ namespace FiscalHost.Api.CR.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("fiscalhost_db")
-                .HasAnnotation("ProductVersion", "8.0.0")
+                .HasAnnotation("ProductVersion", "10.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "estado_llave", "fiscalhost_db", new[] { "ACTIVA", "EXPIRADA", "REVOCADA" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "fiscalhost_db", "canal_notificacion", new[] { "CORREO", "PLATAFORMA", "AMBOS" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "fiscalhost_db", "clasificacion_fiscal", new[] { "GRAVADO", "EXENTO", "GRAVADO_CON_RETENCION" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "fiscalhost_db", "clasificacion_iva", new[] { "GRAVADO_13", "EXENTO" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "fiscalhost_db", "estado_declaracion", new[] { "BORRADOR", "CALCULADO", "VALIDADO", "EXPORTADO", "PRESENTADO" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "fiscalhost_db", "estado_importacion", new[] { "PENDIENTE", "PROCESANDO", "COMPLETADO", "COMPLETADO_PARCIAL", "RECHAZADO" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "fiscalhost_db", "estado_llave", new[] { "ACTIVA", "EXPIRADA", "REVOCADA" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "fiscalhost_db", "estado_notificacion", new[] { "PENDIENTE", "ENVIADA", "ENTREGADA", "FALLIDA", "LEIDA" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "fiscalhost_db", "estado_obligacion", new[] { "VIGENTE", "VENCIDA", "PAGADA", "EN_ARREGLO" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "fiscalhost_db", "estado_ocr", new[] { "pendiente", "procesado", "ilegible", "sin_procesar" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "fiscalhost_db", "estado_usuario", new[] { "PENDIENTE_ACTIVACION", "ACTIVO", "INACTIVO", "BLOQUEADO", "ELIMINADO" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "fiscalhost_db", "estado_validacion", new[] { "PENDIENTE", "VALIDO", "RECHAZADO", "DUPLICADO" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "fiscalhost_db", "fuente_ingreso", new[] { "NACIONAL", "EXTRANJERA" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "fiscalhost_db", "fuente_registro", new[] { "IMPORTACION_CSV", "MANUAL", "RECONSTRUCCION" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "fiscalhost_db", "operacion_auditoria", new[] { "insert", "update", "delete", "login", "logout", "export", "reclasificacion", "cambio_regimen", "cambio_actividad_economica" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "fiscalhost_db", "plataforma_origen", new[] { "AIRBNB", "BOOKING", "VRBO", "DIRECTA", "OTRA" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "fiscalhost_db", "regimen_tributario", new[] { "CAPITAL_INMOBILIARIO", "UTILIDADES" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "fiscalhost_db", "rol_usuario", new[] { "ANFITRION", "CONTADOR", "ADMINISTRADOR" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "fiscalhost_db", "tipo_alerta", new[] { "VENCIMIENTO_15_DIAS", "VENCIMIENTO_10_DIAS", "VENCIMIENTO_7_DIAS", "VENCIMIENTO_3_DIAS", "VENCIMIENTO_1_DIA", "VENCIMIENTO_EXPIRADO", "LLAVE_POR_VENCER", "INFORMATIVA", "SEGURIDAD" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "fiscalhost_db", "tipo_formulario", new[] { "D104", "D125", "D150", "D116", "D176" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "fiscalhost_db", "tipo_identificacion", new[] { "FISICA", "JURIDICA", "DIMEX", "NITE" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "fiscalhost_db", "tipo_moneda", new[] { "CRC", "USD" });
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("FiscalHost.Api.CR.Models.Entities.Audit.AuditoriaConfiguracion", b =>
@@ -127,7 +101,7 @@ namespace FiscalHost.Api.CR.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("audit_id");
 
-                    b.Property<string[]>("CamposModificados")
+                    b.PrimitiveCollection<string[]>("CamposModificados")
                         .HasColumnType("text[]")
                         .HasColumnName("campos_modificados");
 
@@ -155,8 +129,8 @@ namespace FiscalHost.Api.CR.Migrations
                         .HasColumnType("jsonb")
                         .HasColumnName("old_values");
 
-                    b.Property<OperacionAuditoria>("Operacion")
-                        .HasColumnType("fiscalhost_db.operacion_auditoria")
+                    b.Property<int>("Operacion")
+                        .HasColumnType("integer")
                         .HasColumnName("operacion");
 
                     b.Property<Guid?>("RegistroId")
@@ -167,8 +141,8 @@ namespace FiscalHost.Api.CR.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("request_id");
 
-                    b.Property<RolUsuario?>("RolUsuario")
-                        .HasColumnType("fiscalhost_db.rol_usuario")
+                    b.Property<int?>("RolUsuario")
+                        .HasColumnType("integer")
                         .HasColumnName("rol_usuario");
 
                     b.Property<string>("TablaAfectada")
@@ -200,8 +174,8 @@ namespace FiscalHost.Api.CR.Migrations
                         .HasColumnType("text")
                         .HasColumnName("emisor_certificado");
 
-                    b.Property<EstadoLlave>("Estado")
-                        .HasColumnType("fiscalhost_db.estado_llave")
+                    b.Property<int>("Estado")
+                        .HasColumnType("integer")
                         .HasColumnName("estado");
 
                     b.Property<DateTime>("FechaCarga")
@@ -266,8 +240,8 @@ namespace FiscalHost.Api.CR.Migrations
                         .HasColumnType("jsonb")
                         .HasColumnName("accion_sugerida");
 
-                    b.Property<CanalNotificacion>("Canal")
-                        .HasColumnType("fiscalhost_db.canal_notificacion")
+                    b.Property<int>("Canal")
+                        .HasColumnType("integer")
                         .HasColumnName("canal");
 
                     b.Property<DateTimeOffset>("CreatedAt")
@@ -278,8 +252,8 @@ namespace FiscalHost.Api.CR.Migrations
                         .HasColumnType("text")
                         .HasColumnName("error_envio");
 
-                    b.Property<EstadoNotificacion>("Estado")
-                        .HasColumnType("fiscalhost_db.estado_notificacion")
+                    b.Property<int>("Estado")
+                        .HasColumnType("integer")
                         .HasColumnName("estado");
 
                     b.Property<DateTimeOffset?>("FechaEnvio")
@@ -315,8 +289,8 @@ namespace FiscalHost.Api.CR.Migrations
                         .HasColumnType("smallint")
                         .HasColumnName("prioridad");
 
-                    b.Property<TipoAlerta>("TipoAlerta")
-                        .HasColumnType("fiscalhost_db.tipo_alerta")
+                    b.Property<int>("TipoAlerta")
+                        .HasColumnType("integer")
                         .HasColumnName("tipo_alerta");
 
                     b.Property<string>("Titulo")
@@ -551,8 +525,8 @@ namespace FiscalHost.Api.CR.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("nise");
 
-                    b.Property<RegimenTributario>("RegimenTributario")
-                        .HasColumnType("fiscalhost_db.regimen_tributario")
+                    b.Property<int>("RegimenTributario")
+                        .HasColumnType("integer")
                         .HasColumnName("regimen_tributario");
 
                     b.Property<string>("TribuCr")
@@ -611,8 +585,8 @@ namespace FiscalHost.Api.CR.Migrations
                         .HasColumnType("text")
                         .HasColumnName("provincia");
 
-                    b.Property<TipoMoneda?>("TipoMonedaValor")
-                        .HasColumnType("fiscalhost_db.tipo_moneda")
+                    b.Property<int?>("TipoMonedaValor")
+                        .HasColumnType("integer")
                         .HasColumnName("tipo_moneda_valor");
 
                     b.Property<Guid>("UsuarioId")
@@ -657,8 +631,8 @@ namespace FiscalHost.Api.CR.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("es_usuario_nuevo");
 
-                    b.Property<EstadoUsuario>("Estado")
-                        .HasColumnType("fiscalhost_db.estado_usuario")
+                    b.Property<int>("Estado")
+                        .HasColumnType("integer")
                         .HasColumnName("estado");
 
                     b.Property<DateTimeOffset?>("FechaActivacion")
@@ -687,12 +661,12 @@ namespace FiscalHost.Api.CR.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("razon_social");
 
-                    b.Property<RolUsuario>("RolPrincipal")
-                        .HasColumnType("fiscalhost_db.rol_usuario")
+                    b.Property<int>("RolPrincipal")
+                        .HasColumnType("integer")
                         .HasColumnName("rol_principal");
 
-                    b.Property<TipoIdentificacion>("TipoIdentificacion")
-                        .HasColumnType("fiscalhost_db.tipo_identificacion")
+                    b.Property<int>("TipoIdentificacion")
+                        .HasColumnType("integer")
                         .HasColumnName("tipo_identificacion");
 
                     b.Property<DateTimeOffset?>("UltimoAcceso")
@@ -772,8 +746,8 @@ namespace FiscalHost.Api.CR.Migrations
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("base_imponible_renta");
 
-                    b.Property<ClasificacionIva>("ClasificacionIva")
-                        .HasColumnType("fiscalhost_db.clasificacion_iva")
+                    b.Property<int>("ClasificacionIva")
+                        .HasColumnType("integer")
                         .HasColumnName("clasificacion_iva");
 
                     b.Property<int>("DiasEstancia")
@@ -796,8 +770,8 @@ namespace FiscalHost.Api.CR.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("fecha_salida");
 
-                    b.Property<FuenteIngreso>("FuenteIngreso")
-                        .HasColumnType("fiscalhost_db.fuente_ingreso")
+                    b.Property<int>("FuenteIngreso")
+                        .HasColumnType("integer")
                         .HasColumnName("fuente_ingreso");
 
                     b.Property<bool>("HuespedResidente")
@@ -882,12 +856,12 @@ namespace FiscalHost.Api.CR.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("es_deducible_renta");
 
-                    b.Property<EstadoOcr?>("EstadoOcr")
-                        .HasColumnType("fiscalhost_db.estado_ocr")
+                    b.Property<int?>("EstadoOcr")
+                        .HasColumnType("integer")
                         .HasColumnName("estado_ocr");
 
-                    b.Property<EstadoValidacion>("EstadoValidacion")
-                        .HasColumnType("fiscalhost_db.estado_validacion")
+                    b.Property<int>("EstadoValidacion")
+                        .HasColumnType("integer")
                         .HasColumnName("estado_validacion");
 
                     b.Property<string>("EvidenciaNombreArchivo")
@@ -917,8 +891,8 @@ namespace FiscalHost.Api.CR.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("fecha_registro");
 
-                    b.Property<FuenteRegistro>("FuenteRegistro")
-                        .HasColumnType("fiscalhost_db.fuente_registro")
+                    b.Property<int>("FuenteRegistro")
+                        .HasColumnType("integer")
                         .HasColumnName("fuente_registro");
 
                     b.Property<string>("HashUnicoComprobante")
@@ -926,8 +900,8 @@ namespace FiscalHost.Api.CR.Migrations
                         .HasColumnType("character varying(64)")
                         .HasColumnName("hash_unico_comprobante");
 
-                    b.Property<TipoMoneda>("Moneda")
-                        .HasColumnType("fiscalhost_db.tipo_moneda")
+                    b.Property<int>("Moneda")
+                        .HasColumnType("integer")
                         .HasColumnName("moneda");
 
                     b.Property<decimal>("MontoColones")
@@ -1056,8 +1030,8 @@ namespace FiscalHost.Api.CR.Migrations
                         .HasColumnType("jsonb")
                         .HasColumnName("detalle_errores");
 
-                    b.Property<EstadoImportacion>("Estado")
-                        .HasColumnType("fiscalhost_db.estado_importacion")
+                    b.Property<int>("Estado")
+                        .HasColumnType("integer")
                         .HasColumnName("estado");
 
                     b.Property<DateTimeOffset>("FechaCarga")
@@ -1083,8 +1057,8 @@ namespace FiscalHost.Api.CR.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("plantilla_utilizada");
 
-                    b.Property<PlataformaOrigen?>("PlataformaOrigen")
-                        .HasColumnType("fiscalhost_db.plataforma_origen")
+                    b.Property<int?>("PlataformaOrigen")
+                        .HasColumnType("integer")
                         .HasColumnName("plataforma_origen");
 
                     b.Property<int?>("RegistrosConError")
@@ -1132,8 +1106,8 @@ namespace FiscalHost.Api.CR.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("reserva_id");
 
-                    b.Property<ClasificacionFiscal>("ClasificacionFiscal")
-                        .HasColumnType("fiscalhost_db.clasificacion_fiscal")
+                    b.Property<int>("ClasificacionFiscal")
+                        .HasColumnType("integer")
                         .HasColumnName("clasificacion_fiscal");
 
                     b.Property<string>("Estado")
@@ -1157,8 +1131,8 @@ namespace FiscalHost.Api.CR.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("fue_reclasificada");
 
-                    b.Property<FuenteRegistro>("FuenteRegistro")
-                        .HasColumnType("fiscalhost_db.fuente_registro")
+                    b.Property<int>("FuenteRegistro")
+                        .HasColumnType("integer")
                         .HasColumnName("fuente_registro");
 
                     b.Property<string>("IdentificacionHuesped")
@@ -1178,8 +1152,8 @@ namespace FiscalHost.Api.CR.Migrations
                         .HasColumnType("jsonb")
                         .HasColumnName("metadata");
 
-                    b.Property<TipoMoneda>("Moneda")
-                        .HasColumnType("fiscalhost_db.tipo_moneda")
+                    b.Property<int>("Moneda")
+                        .HasColumnType("integer")
                         .HasColumnName("moneda");
 
                     b.Property<decimal>("MontoBruto")
@@ -1218,8 +1192,8 @@ namespace FiscalHost.Api.CR.Migrations
                         .HasColumnType("smallint")
                         .HasColumnName("periodo_fiscal_mes");
 
-                    b.Property<PlataformaOrigen>("PlataformaOrigen")
-                        .HasColumnType("fiscalhost_db.plataforma_origen")
+                    b.Property<int>("PlataformaOrigen")
+                        .HasColumnType("integer")
                         .HasColumnName("plataforma_origen");
 
                     b.Property<Guid?>("PropiedadId")
@@ -1319,8 +1293,8 @@ namespace FiscalHost.Api.CR.Migrations
                         .HasColumnType("jsonb")
                         .HasColumnName("detalle_calculo");
 
-                    b.Property<EstadoDeclaracion>("Estado")
-                        .HasColumnType("fiscalhost_db.estado_declaracion")
+                    b.Property<int>("Estado")
+                        .HasColumnType("integer")
                         .HasColumnName("estado");
 
                     b.Property<DateTimeOffset?>("FechaGeneracionBorrador")
@@ -1343,8 +1317,8 @@ namespace FiscalHost.Api.CR.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("periodo_id");
 
-                    b.Property<RegimenTributario?>("RegimenAplicado")
-                        .HasColumnType("fiscalhost_db.regimen_tributario")
+                    b.Property<int?>("RegimenAplicado")
+                        .HasColumnType("integer")
                         .HasColumnName("regimen_aplicado");
 
                     b.Property<decimal?>("RentaBruta")
@@ -1367,8 +1341,8 @@ namespace FiscalHost.Api.CR.Migrations
                         .HasColumnType("numeric")
                         .HasColumnName("saldo_favor_resultante");
 
-                    b.Property<TipoFormulario>("TipoFormulario")
-                        .HasColumnType("fiscalhost_db.tipo_formulario")
+                    b.Property<int>("TipoFormulario")
+                        .HasColumnType("integer")
                         .HasColumnName("tipo_formulario");
 
                     b.Property<decimal>("TotalIngresosBrutos")
@@ -1528,8 +1502,8 @@ namespace FiscalHost.Api.CR.Migrations
                         .HasColumnType("character varying(300)")
                         .HasColumnName("descripcion");
 
-                    b.Property<EstadoObligacion>("Estado")
-                        .HasColumnType("fiscalhost_db.estado_obligacion")
+                    b.Property<int>("Estado")
+                        .HasColumnType("integer")
                         .HasColumnName("estado");
 
                     b.Property<DateOnly?>("FechaPago")
@@ -1573,8 +1547,8 @@ namespace FiscalHost.Api.CR.Migrations
                         .HasColumnType("numeric")
                         .HasColumnName("tasa_interes_aplicada");
 
-                    b.Property<TipoFormulario>("TipoFormulario")
-                        .HasColumnType("fiscalhost_db.tipo_formulario")
+                    b.Property<int>("TipoFormulario")
+                        .HasColumnType("integer")
                         .HasColumnName("tipo_formulario");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
@@ -1648,13 +1622,74 @@ namespace FiscalHost.Api.CR.Migrations
                         .HasColumnType("numeric")
                         .HasColumnName("tasa_interes_mora_anual");
 
-                    b.Property<TipoFormulario>("TipoFormulario")
-                        .HasColumnType("fiscalhost_db.tipo_formulario")
+                    b.Property<int>("TipoFormulario")
+                        .HasColumnType("integer")
                         .HasColumnName("tipo_formulario");
 
                     b.HasKey("PeriodoId");
 
                     b.ToTable("periodo_fiscal", "fiscalhost_db");
+                });
+
+            modelBuilder.Entity("FiscalHost.Api.CR.Models.Entities.TaxIntelligence.ReconstruccionHistorica", b =>
+                {
+                    b.Property<Guid>("ReconstruccionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("reconstruccion_id");
+
+                    b.Property<string>("DetalleErrores")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("detalle_errores");
+
+                    b.Property<int>("Estado")
+                        .HasColumnType("integer")
+                        .HasColumnName("estado");
+
+                    b.Property<DateTimeOffset?>("FechaFinProcesamiento")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("fecha_fin_procesamiento");
+
+                    b.Property<DateTimeOffset>("FechaInicioProcesamiento")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("fecha_inicio_procesamiento");
+
+                    b.Property<string>("NombreArchivoOriginal")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("nombre_archivo_original");
+
+                    b.Property<int>("RegistrosConError")
+                        .HasColumnType("integer")
+                        .HasColumnName("registros_con_error");
+
+                    b.Property<int>("RegistrosExitosos")
+                        .HasColumnType("integer")
+                        .HasColumnName("registros_exitosos");
+
+                    b.Property<string>("ReporteErroresUrl")
+                        .HasColumnType("text")
+                        .HasColumnName("reporte_errores_url");
+
+                    b.Property<long>("TamanioBytes")
+                        .HasColumnType("bigint")
+                        .HasColumnName("tamanio_bytes");
+
+                    b.Property<int>("TotalRegistros")
+                        .HasColumnType("integer")
+                        .HasColumnName("total_registros");
+
+                    b.Property<Guid>("UsuarioId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("usuario_id");
+
+                    b.HasKey("ReconstruccionId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("reconstruccion_historica", "fiscalhost_db");
                 });
 
             modelBuilder.Entity("FiscalHost.Api.CR.Models.Entities.TaxIntelligence.SancionAutoliquidacion", b =>
@@ -1696,6 +1731,7 @@ namespace FiscalHost.Api.CR.Migrations
                         .HasColumnName("monto_reduccion");
 
                     b.Property<decimal>("MontoTotalPagar")
+                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("numeric")
                         .HasColumnName("monto_total_pagar");
 
@@ -2011,6 +2047,17 @@ namespace FiscalHost.Api.CR.Migrations
                     b.Navigation("CalculoFiscal");
 
                     b.Navigation("Periodo");
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("FiscalHost.Api.CR.Models.Entities.TaxIntelligence.ReconstruccionHistorica", b =>
+                {
+                    b.HasOne("FiscalHost.Api.CR.Models.Entities.Identity.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Usuario");
                 });
