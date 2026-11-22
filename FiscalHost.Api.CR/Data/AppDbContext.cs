@@ -64,7 +64,15 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         // ── Mapeo explícito de nombres de tabla (snake_case en PostgreSQL) ──────────────
 
         // Identity
-        modelBuilder.Entity<Usuario>().ToTable("usuario");
+        modelBuilder.Entity<Usuario>(entity =>
+        {
+            entity.ToTable("usuario");
+            // Evitar que Npgsql intente leer fiscalhost_db.estado_usuario como System.Int32.
+            // Se lee/escribe como texto para evitar el InvalidCastException del enum no mapeado.
+            entity.Property(u => u.Estado).HasConversion<string>();
+            entity.Property(u => u.RolPrincipal).HasConversion<string>();
+            entity.Property(u => u.TipoIdentificacion).HasConversion<string>();
+        });
         modelBuilder.Entity<PerfilTributario>().ToTable("perfil_tributario");
         modelBuilder.Entity<Propiedad>().ToTable("propiedad");
         modelBuilder.Entity<AccesoContador>().ToTable("acceso_contador");
