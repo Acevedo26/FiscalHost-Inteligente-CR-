@@ -39,39 +39,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     {
         modelBuilder.HasDefaultSchema("fiscalhost_db");
 
-        modelBuilder.HasPostgresEnum<TipoIdentificacion>("fiscalhost_db", "tipo_identificacion");
-        modelBuilder.HasPostgresEnum<EstadoUsuario>("fiscalhost_db", "estado_usuario");
-        modelBuilder.HasPostgresEnum<RolUsuario>("fiscalhost_db", "rol_usuario");
-        modelBuilder.HasPostgresEnum<RegimenTributario>("fiscalhost_db", "regimen_tributario");
-        modelBuilder.HasPostgresEnum<ClasificacionFiscal>("fiscalhost_db", "clasificacion_fiscal");
-        modelBuilder.HasPostgresEnum<PlataformaOrigen>("fiscalhost_db", "plataforma_origen");
-        modelBuilder.HasPostgresEnum<FuenteRegistro>("fiscalhost_db", "fuente_registro");
-        modelBuilder.HasPostgresEnum<EstadoOcr>("fiscalhost_db", "estado_ocr");
-        modelBuilder.HasPostgresEnum<EstadoValidacion>("fiscalhost_db", "estado_validacion");
-        modelBuilder.HasPostgresEnum<EstadoImportacion>("fiscalhost_db", "estado_importacion");
-        modelBuilder.HasPostgresEnum<TipoFormulario>("fiscalhost_db", "tipo_formulario");
-        modelBuilder.HasPostgresEnum<EstadoDeclaracion>("fiscalhost_db", "estado_declaracion");
-        modelBuilder.HasPostgresEnum<EstadoObligacion>("fiscalhost_db", "estado_obligacion");
-        modelBuilder.HasPostgresEnum<TipoAlerta>("fiscalhost_db", "tipo_alerta");
-        modelBuilder.HasPostgresEnum<CanalNotificacion>("fiscalhost_db", "canal_notificacion");
-        modelBuilder.HasPostgresEnum<EstadoNotificacion>("fiscalhost_db", "estado_notificacion");
-        modelBuilder.HasPostgresEnum<EstadoLlave>("fiscalhost_db", "estado_llave");
-        modelBuilder.HasPostgresEnum<OperacionAuditoria>("fiscalhost_db", "operacion_auditoria");
-        modelBuilder.HasPostgresEnum<TipoMoneda>("fiscalhost_db", "tipo_moneda");
-        modelBuilder.HasPostgresEnum<ClasificacionIva>("fiscalhost_db", "clasificacion_iva");
-        modelBuilder.HasPostgresEnum<FuenteIngreso>("fiscalhost_db", "fuente_ingreso");
-
         // ── Mapeo explícito de nombres de tabla (snake_case en PostgreSQL) ──────────────
 
         // Identity
         modelBuilder.Entity<Usuario>(entity =>
         {
             entity.ToTable("usuario");
-            // Evitar que Npgsql intente leer fiscalhost_db.estado_usuario como System.Int32.
-            // Se lee/escribe como texto para evitar el InvalidCastException del enum no mapeado.
-            entity.Property(u => u.Estado).HasConversion<string>();
-            entity.Property(u => u.RolPrincipal).HasConversion<string>();
-            entity.Property(u => u.TipoIdentificacion).HasConversion<string>();
         });
         modelBuilder.Entity<PerfilTributario>().ToTable("perfil_tributario");
         modelBuilder.Entity<Propiedad>().ToTable("propiedad");
@@ -173,11 +146,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         });
 
         modelBuilder.HasPostgresEnum<EstadoLlave>("estado_llave", "fiscalhost_db");
-
-        // Opcional: configuración explícita por entidad
-        modelBuilder.Entity<LlaveCriptografica>()
-            .Property(e => e.Estado)
-            .HasColumnType("fiscalhost_db.estado_llave");
 
     }
 

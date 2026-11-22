@@ -1,8 +1,5 @@
 ﻿using System;
-using FiscalHost.Api.CR.Models.Enums.Communication;
-using FiscalHost.Api.CR.Models.Enums.Identity;
-using FiscalHost.Api.CR.Models.Enums.Operations;
-using FiscalHost.Api.CR.Models.Enums.TaxIntelligence;
+using System.Net;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,7 +8,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FiscalHost.Api.CR.Migrations
 {
     /// <inheritdoc />
-    public partial class UpdateAuditoriaOperacion : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -20,46 +17,32 @@ namespace FiscalHost.Api.CR.Migrations
                 name: "fiscalhost_db");
 
             migrationBuilder.AlterDatabase()
-                .Annotation("Npgsql:Enum:fiscalhost_db.canal_notificacion", "CORREO,PLATAFORMA,AMBOS")
-                .Annotation("Npgsql:Enum:fiscalhost_db.clasificacion_fiscal", "GRAVADO,EXENTO,GRAVADO_CON_RETENCION")
-                .Annotation("Npgsql:Enum:fiscalhost_db.estado_declaracion", "BORRADOR,CALCULADO,VALIDADO,EXPORTADO,PRESENTADO")
-                .Annotation("Npgsql:Enum:fiscalhost_db.estado_importacion", "PENDIENTE,PROCESANDO,COMPLETADO,COMPLETADO_PARCIAL,RECHAZADO")
-                .Annotation("Npgsql:Enum:fiscalhost_db.estado_llave", "ACTIVA,EXPIRADA,REVOCADA")
-                .Annotation("Npgsql:Enum:fiscalhost_db.estado_notificacion", "PENDIENTE,ENVIADA,ENTREGADA,FALLIDA,LEIDA")
-                .Annotation("Npgsql:Enum:fiscalhost_db.estado_obligacion", "VIGENTE,VENCIDA,PAGADA,EN_ARREGLO")
-                .Annotation("Npgsql:Enum:fiscalhost_db.estado_ocr", "pendiente,procesado,ilegible,sin_procesar")
-                .Annotation("Npgsql:Enum:fiscalhost_db.estado_usuario", "PENDIENTE_ACTIVACION,ACTIVO,INACTIVO,BLOQUEADO,ELIMINADO")
-                .Annotation("Npgsql:Enum:fiscalhost_db.estado_validacion", "PENDIENTE,VALIDO,RECHAZADO,DUPLICADO")
-                .Annotation("Npgsql:Enum:fiscalhost_db.fuente_registro", "IMPORTACION_CSV,MANUAL,RECONSTRUCCION")
-                .Annotation("Npgsql:Enum:fiscalhost_db.operacion_auditoria", "insert,update,delete,login,logout,export,reclasificacion,cambio_regimen,cambio_actividad_economica")
-                .Annotation("Npgsql:Enum:fiscalhost_db.plataforma_origen", "AIRBNB,BOOKING,VRBO,DIRECTA,OTRA")
-                .Annotation("Npgsql:Enum:fiscalhost_db.regimen_tributario", "CAPITAL_INMOBILIARIO,UTILIDADES")
-                .Annotation("Npgsql:Enum:fiscalhost_db.rol_usuario", "ANFITRION,CONTADOR,ADMINISTRADOR")
-                .Annotation("Npgsql:Enum:fiscalhost_db.tipo_alerta", "VENCIMIENTO_15_DIAS,VENCIMIENTO_10_DIAS,VENCIMIENTO_7_DIAS,VENCIMIENTO_3_DIAS,VENCIMIENTO_1_DIA,VENCIMIENTO_EXPIRADO,LLAVE_POR_VENCER,INFORMATIVA,SEGURIDAD")
-                .Annotation("Npgsql:Enum:fiscalhost_db.tipo_formulario", "D150,D116,D176")
-                .Annotation("Npgsql:Enum:fiscalhost_db.tipo_identificacion", "FISICA,JURIDICA,DIMEX,NITE")
-                .Annotation("Npgsql:Enum:fiscalhost_db.tipo_moneda", "CRC,USD");
+                .Annotation("Npgsql:Enum:estado_llave.fiscalhost_db", "ACTIVA,EXPIRADA,REVOCADA");
 
             migrationBuilder.CreateTable(
-                name: "auditoria_operacion",
+                name: "audit_log",
                 schema: "fiscalhost_db",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Entidad = table.Column<string>(type: "text", nullable: false),
-                    EntidadId = table.Column<int>(type: "integer", nullable: false),
-                    Usuario = table.Column<string>(type: "text", nullable: false),
-                    Accion = table.Column<string>(type: "text", nullable: false),
-                    Descripcion = table.Column<string>(type: "text", nullable: false),
-                    ValorAnterior = table.Column<string>(type: "text", nullable: true),
-                    ValorNuevo = table.Column<string>(type: "text", nullable: true),
-                    Justificacion = table.Column<string>(type: "text", nullable: true),
-                    Fecha = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    audit_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    usuario_id = table.Column<Guid>(type: "uuid", nullable: true),
+                    correo_usuario = table.Column<string>(type: "text", nullable: true),
+                    rol_usuario = table.Column<int>(type: "integer", nullable: true),
+                    operacion = table.Column<int>(type: "integer", nullable: false),
+                    tabla_afectada = table.Column<string>(type: "text", nullable: false),
+                    registro_id = table.Column<Guid>(type: "uuid", nullable: true),
+                    old_values = table.Column<string>(type: "jsonb", nullable: true),
+                    new_values = table.Column<string>(type: "jsonb", nullable: true),
+                    campos_modificados = table.Column<string[]>(type: "text[]", nullable: true),
+                    justificacion = table.Column<string>(type: "text", nullable: true),
+                    ip_origen = table.Column<IPAddress>(type: "inet", nullable: true),
+                    user_agent = table.Column<string>(type: "text", nullable: true),
+                    request_id = table.Column<Guid>(type: "uuid", nullable: true),
+                    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_auditoria_operacion", x => x.Id);
+                    table.PrimaryKey("PK_audit_log", x => x.audit_id);
                 });
 
             migrationBuilder.CreateTable(
@@ -78,6 +61,37 @@ namespace FiscalHost.Api.CR.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_catalogo_actividad_economica", x => x.codigo);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "clasificacion_ingreso",
+                schema: "fiscalhost_db",
+                columns: table => new
+                {
+                    clasificacion_ingreso_id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    anfitrion_id = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    fecha_entrada = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    fecha_salida = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    dias_estancia = table.Column<int>(type: "integer", nullable: false),
+                    monto_bruto = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
+                    fuente_ingreso = table.Column<int>(type: "integer", nullable: false),
+                    tiene_factura_electronica_nacional = table.Column<bool>(type: "boolean", nullable: false),
+                    huesped_residente = table.Column<bool>(type: "boolean", nullable: false),
+                    clasificacion_iva = table.Column<int>(type: "integer", nullable: false),
+                    monto_iva = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
+                    base_imponible_renta = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
+                    impuesto_renta = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
+                    monto_retencion = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
+                    neto_anfitrion = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
+                    reclasificado_manualmente = table.Column<bool>(type: "boolean", nullable: false),
+                    justificacion_manual = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    fecha_creacion = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    fecha_actualizacion = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_clasificacion_ingreso", x => x.clasificacion_ingreso_id);
                 });
 
             migrationBuilder.CreateTable(
@@ -108,7 +122,7 @@ namespace FiscalHost.Api.CR.Migrations
                     periodo_id = table.Column<Guid>(type: "uuid", nullable: false),
                     anio = table.Column<short>(type: "smallint", nullable: false),
                     mes = table.Column<short>(type: "smallint", nullable: false),
-                    tipo_formulario = table.Column<TipoFormulario>(type: "fiscalhost_db.tipo_formulario", nullable: false),
+                    tipo_formulario = table.Column<int>(type: "integer", nullable: false),
                     fecha_inicio_periodo = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     fecha_fin_periodo = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     fecha_vencimiento = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -116,6 +130,7 @@ namespace FiscalHost.Api.CR.Migrations
                     tarifa_renta_capital = table.Column<decimal>(type: "numeric", nullable: false),
                     deduccion_plana_capital = table.Column<decimal>(type: "numeric", nullable: false),
                     tasa_interes_mora_anual = table.Column<decimal>(type: "numeric", nullable: true),
+                    salario_base_vigente = table.Column<decimal>(type: "numeric", nullable: true),
                     normativa_aplicable = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
@@ -147,14 +162,14 @@ namespace FiscalHost.Api.CR.Migrations
                 columns: table => new
                 {
                     usuario_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    tipo_identificacion = table.Column<TipoIdentificacion>(type: "fiscalhost_db.tipo_identificacion", nullable: false),
+                    tipo_identificacion = table.Column<int>(type: "integer", nullable: false),
                     numero_identificacion = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     nombre_completo = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     razon_social = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
                     correo_electronico = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
                     contrasena_hash = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
-                    estado = table.Column<EstadoUsuario>(type: "fiscalhost_db.estado_usuario", nullable: false),
-                    rol_principal = table.Column<RolUsuario>(type: "fiscalhost_db.rol_usuario", nullable: false),
+                    estado = table.Column<int>(type: "integer", nullable: false),
+                    rol_principal = table.Column<int>(type: "integer", nullable: false),
                     es_usuario_nuevo = table.Column<bool>(type: "boolean", nullable: false),
                     correo_verificado = table.Column<bool>(type: "boolean", nullable: false),
                     preferencias_notificacion = table.Column<string>(type: "jsonb", nullable: false),
@@ -167,7 +182,7 @@ namespace FiscalHost.Api.CR.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ConfiguracionTributaria",
+                name: "configuracion_tributaria",
                 schema: "fiscalhost_db",
                 columns: table => new
                 {
@@ -185,13 +200,39 @@ namespace FiscalHost.Api.CR.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ConfiguracionTributaria", x => x.Id);
+                    table.PrimaryKey("PK_configuracion_tributaria", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ConfiguracionTributaria_catalogo_actividad_economica_Activi~",
+                        name: "FK_configuracion_tributaria_catalogo_actividad_economica_Activ~",
                         column: x => x.ActividadEconomicaCodigo,
                         principalSchema: "fiscalhost_db",
                         principalTable: "catalogo_actividad_economica",
                         principalColumn: "codigo");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "auditoria_clasificacion_ingreso",
+                schema: "fiscalhost_db",
+                columns: table => new
+                {
+                    auditoria_clasificacion_ingreso_id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    clasificacion_ingreso_id = table.Column<int>(type: "integer", nullable: false),
+                    usuario_id = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    valor_anterior = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    valor_nuevo = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    justificacion = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
+                    fecha_evento = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_auditoria_clasificacion_ingreso", x => x.auditoria_clasificacion_ingreso_id);
+                    table.ForeignKey(
+                        name: "FK_auditoria_clasificacion_ingreso_clasificacion_ingreso_clasi~",
+                        column: x => x.clasificacion_ingreso_id,
+                        principalSchema: "fiscalhost_db",
+                        principalTable: "clasificacion_ingreso",
+                        principalColumn: "clasificacion_ingreso_id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -237,9 +278,9 @@ namespace FiscalHost.Api.CR.Migrations
                     calculo_id = table.Column<Guid>(type: "uuid", nullable: false),
                     usuario_id = table.Column<Guid>(type: "uuid", nullable: false),
                     periodo_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    tipo_formulario = table.Column<TipoFormulario>(type: "fiscalhost_db.tipo_formulario", nullable: false),
-                    regimen_aplicado = table.Column<RegimenTributario>(type: "fiscalhost_db.regimen_tributario", nullable: true),
-                    estado = table.Column<EstadoDeclaracion>(type: "fiscalhost_db.estado_declaracion", nullable: false),
+                    tipo_formulario = table.Column<int>(type: "integer", nullable: false),
+                    regimen_aplicado = table.Column<int>(type: "integer", nullable: true),
+                    estado = table.Column<int>(type: "integer", nullable: false),
                     total_ingresos_brutos = table.Column<decimal>(type: "numeric", nullable: false),
                     total_ingresos_gravados = table.Column<decimal>(type: "numeric", nullable: false),
                     total_ingresos_exentos = table.Column<decimal>(type: "numeric", nullable: false),
@@ -317,12 +358,12 @@ namespace FiscalHost.Api.CR.Migrations
                     importacion_id = table.Column<Guid>(type: "uuid", nullable: false),
                     usuario_id = table.Column<Guid>(type: "uuid", nullable: false),
                     tipo_importacion = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false),
-                    plataforma_origen = table.Column<PlataformaOrigen>(type: "fiscalhost_db.plataforma_origen", nullable: true),
+                    plataforma_origen = table.Column<int>(type: "integer", nullable: true),
                     archivo_url = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
                     nombre_archivo_original = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     plantilla_utilizada = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     tamanio_bytes = table.Column<long>(type: "bigint", nullable: true),
-                    estado = table.Column<EstadoImportacion>(type: "fiscalhost_db.estado_importacion", nullable: false),
+                    estado = table.Column<int>(type: "integer", nullable: false),
                     total_registros = table.Column<int>(type: "integer", nullable: true),
                     registros_exitosos = table.Column<int>(type: "integer", nullable: true),
                     registros_con_error = table.Column<int>(type: "integer", nullable: true),
@@ -359,7 +400,7 @@ namespace FiscalHost.Api.CR.Migrations
                     fecha_emision_certificado = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     fecha_expiracion_certificado = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     emisor_certificado = table.Column<string>(type: "text", nullable: true),
-                    estado = table.Column<string>(type: "text", nullable: false),
+                    estado = table.Column<int>(type: "integer", nullable: false),
                     fecha_carga = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     ultima_actualizacion_contrasena = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
@@ -388,7 +429,7 @@ namespace FiscalHost.Api.CR.Migrations
                     direccion_fiscal = table.Column<string>(type: "text", nullable: true),
                     nise = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     es_domicilio_validado = table.Column<bool>(type: "boolean", nullable: false),
-                    regimen_tributario = table.Column<RegimenTributario>(type: "fiscalhost_db.regimen_tributario", nullable: false),
+                    regimen_tributario = table.Column<int>(type: "integer", nullable: false),
                     fecha_inicio_actividad = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     fecha_inscripcion_hacienda = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     datos_complementarios = table.Column<string>(type: "jsonb", nullable: false)
@@ -426,7 +467,7 @@ namespace FiscalHost.Api.CR.Migrations
                     distrito = table.Column<string>(type: "text", nullable: true),
                     numero_finca = table.Column<string>(type: "text", nullable: true),
                     valor_fiscal = table.Column<decimal>(type: "numeric", nullable: true),
-                    tipo_moneda_valor = table.Column<TipoMoneda>(type: "fiscalhost_db.tipo_moneda", nullable: true),
+                    tipo_moneda_valor = table.Column<int>(type: "integer", nullable: true),
                     activa = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
@@ -434,6 +475,36 @@ namespace FiscalHost.Api.CR.Migrations
                     table.PrimaryKey("PK_propiedad", x => x.propiedad_id);
                     table.ForeignKey(
                         name: "FK_propiedad_usuario_usuario_id",
+                        column: x => x.usuario_id,
+                        principalSchema: "fiscalhost_db",
+                        principalTable: "usuario",
+                        principalColumn: "usuario_id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "reconstruccion_historica",
+                schema: "fiscalhost_db",
+                columns: table => new
+                {
+                    reconstruccion_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    usuario_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    nombre_archivo_original = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    tamanio_bytes = table.Column<long>(type: "bigint", nullable: false),
+                    estado = table.Column<int>(type: "integer", nullable: false),
+                    total_registros = table.Column<int>(type: "integer", nullable: false),
+                    registros_exitosos = table.Column<int>(type: "integer", nullable: false),
+                    registros_con_error = table.Column<int>(type: "integer", nullable: false),
+                    detalle_errores = table.Column<string>(type: "jsonb", nullable: false),
+                    reporte_errores_url = table.Column<string>(type: "text", nullable: true),
+                    fecha_inicio_procesamiento = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    fecha_fin_procesamiento = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_reconstruccion_historica", x => x.reconstruccion_id);
+                    table.ForeignKey(
+                        name: "FK_reconstruccion_historica_usuario_usuario_id",
                         column: x => x.usuario_id,
                         principalSchema: "fiscalhost_db",
                         principalTable: "usuario",
@@ -485,10 +556,10 @@ namespace FiscalHost.Api.CR.Migrations
                 {
                     table.PrimaryKey("PK_auditoria_configuracion", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_auditoria_configuracion_ConfiguracionTributaria_Configuraci~",
+                        name: "FK_auditoria_configuracion_configuracion_tributaria_Configurac~",
                         column: x => x.ConfiguracionTributariaId,
                         principalSchema: "fiscalhost_db",
-                        principalTable: "ConfiguracionTributaria",
+                        principalTable: "configuracion_tributaria",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -537,9 +608,8 @@ namespace FiscalHost.Api.CR.Migrations
                     obligacion_id = table.Column<Guid>(type: "uuid", nullable: false),
                     usuario_id = table.Column<Guid>(type: "uuid", nullable: false),
                     calculo_id = table.Column<Guid>(type: "uuid", nullable: true),
-                    CalculoFiscalCalculoId = table.Column<Guid>(type: "uuid", nullable: true),
                     periodo_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    tipo_formulario = table.Column<TipoFormulario>(type: "fiscalhost_db.tipo_formulario", nullable: false),
+                    tipo_formulario = table.Column<int>(type: "integer", nullable: false),
                     descripcion = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: false),
                     monto_capital = table.Column<decimal>(type: "numeric", nullable: false),
                     monto_multa = table.Column<decimal>(type: "numeric", nullable: false),
@@ -547,7 +617,7 @@ namespace FiscalHost.Api.CR.Migrations
                     monto_total_actualizado = table.Column<decimal>(type: "numeric", nullable: false),
                     fecha_vencimiento = table.Column<DateOnly>(type: "date", nullable: false),
                     fecha_pago = table.Column<DateOnly>(type: "date", nullable: true),
-                    estado = table.Column<EstadoObligacion>(type: "fiscalhost_db.estado_obligacion", nullable: false),
+                    estado = table.Column<int>(type: "integer", nullable: false),
                     tasa_interes_aplicada = table.Column<decimal>(type: "numeric", nullable: true),
                     fecha_ultimo_calculo_interes = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     historial_intereses = table.Column<string>(type: "jsonb", nullable: false),
@@ -558,8 +628,8 @@ namespace FiscalHost.Api.CR.Migrations
                 {
                     table.PrimaryKey("PK_obligacion_tributaria", x => x.obligacion_id);
                     table.ForeignKey(
-                        name: "FK_obligacion_tributaria_calculo_fiscal_CalculoFiscalCalculoId",
-                        column: x => x.CalculoFiscalCalculoId,
+                        name: "FK_obligacion_tributaria_calculo_fiscal_calculo_id",
+                        column: x => x.calculo_id,
                         principalSchema: "fiscalhost_db",
                         principalTable: "calculo_fiscal",
                         principalColumn: "calculo_id");
@@ -620,7 +690,7 @@ namespace FiscalHost.Api.CR.Migrations
                     monto_total = table.Column<decimal>(type: "numeric", nullable: false),
                     monto_iva_soportado = table.Column<decimal>(type: "numeric", nullable: false),
                     monto_neto = table.Column<decimal>(type: "numeric", nullable: true),
-                    moneda = table.Column<TipoMoneda>(type: "fiscalhost_db.tipo_moneda", nullable: false),
+                    moneda = table.Column<int>(type: "integer", nullable: false),
                     tipo_cambio = table.Column<decimal>(type: "numeric", nullable: true),
                     monto_colones = table.Column<decimal>(type: "numeric", nullable: false),
                     tipo_gasto = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
@@ -630,14 +700,14 @@ namespace FiscalHost.Api.CR.Migrations
                     evidencia_nombre_archivo = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
                     evidencia_tipo_mime = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     evidencia_tamanio_bytes = table.Column<long>(type: "bigint", nullable: true),
-                    estado_ocr = table.Column<EstadoOcr>(type: "fiscalhost_db.estado_ocr", nullable: true),
+                    estado_ocr = table.Column<int>(type: "integer", nullable: true),
                     datos_extraidos_ocr = table.Column<string>(type: "jsonb", nullable: false),
                     hash_unico_comprobante = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
-                    estado_validacion = table.Column<EstadoValidacion>(type: "fiscalhost_db.estado_validacion", nullable: false),
+                    estado_validacion = table.Column<int>(type: "integer", nullable: false),
                     observaciones_validacion = table.Column<string>(type: "text", nullable: true),
                     periodo_fiscal_anio = table.Column<short>(type: "smallint", nullable: false),
                     periodo_fiscal_mes = table.Column<short>(type: "smallint", nullable: false),
-                    fuente_registro = table.Column<FuenteRegistro>(type: "fiscalhost_db.fuente_registro", nullable: false),
+                    fuente_registro = table.Column<int>(type: "integer", nullable: false),
                     fecha_registro = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     updated_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     deleted_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
@@ -675,16 +745,16 @@ namespace FiscalHost.Api.CR.Migrations
                     identificacion_huesped = table.Column<string>(type: "text", nullable: true),
                     pais_origen_huesped = table.Column<string>(type: "text", nullable: true),
                     monto_bruto = table.Column<decimal>(type: "numeric", nullable: false),
-                    moneda = table.Column<TipoMoneda>(type: "fiscalhost_db.tipo_moneda", nullable: false),
+                    moneda = table.Column<int>(type: "integer", nullable: false),
                     tipo_cambio = table.Column<decimal>(type: "numeric", nullable: false),
                     monto_colones = table.Column<decimal>(type: "numeric", nullable: false),
-                    clasificacion_fiscal = table.Column<ClasificacionFiscal>(type: "fiscalhost_db.clasificacion_fiscal", nullable: false),
+                    clasificacion_fiscal = table.Column<int>(type: "integer", nullable: false),
                     monto_gravado = table.Column<decimal>(type: "numeric", nullable: false),
                     monto_exento = table.Column<decimal>(type: "numeric", nullable: false),
                     monto_iva_calculado = table.Column<decimal>(type: "numeric", nullable: false),
                     retencion_extranjera = table.Column<decimal>(type: "numeric", nullable: false),
-                    plataforma_origen = table.Column<PlataformaOrigen>(type: "fiscalhost_db.plataforma_origen", nullable: false),
-                    fuente_registro = table.Column<FuenteRegistro>(type: "fiscalhost_db.fuente_registro", nullable: false),
+                    plataforma_origen = table.Column<int>(type: "integer", nullable: false),
+                    fuente_registro = table.Column<int>(type: "integer", nullable: false),
                     referencia_plataforma = table.Column<string>(type: "text", nullable: true),
                     fue_reclasificada = table.Column<bool>(type: "boolean", nullable: false),
                     justificacion_reclasificacion = table.Column<string>(type: "text", nullable: true),
@@ -727,13 +797,13 @@ namespace FiscalHost.Api.CR.Migrations
                     alerta_id = table.Column<Guid>(type: "uuid", nullable: false),
                     usuario_id = table.Column<Guid>(type: "uuid", nullable: false),
                     obligacion_id = table.Column<Guid>(type: "uuid", nullable: true),
-                    tipo_alerta = table.Column<TipoAlerta>(type: "fiscalhost_db.tipo_alerta", nullable: false),
+                    tipo_alerta = table.Column<int>(type: "integer", nullable: false),
                     titulo = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     mensaje = table.Column<string>(type: "text", nullable: false),
                     prioridad = table.Column<short>(type: "smallint", nullable: false),
                     monto_estimado = table.Column<decimal>(type: "numeric", nullable: true),
-                    canal = table.Column<CanalNotificacion>(type: "fiscalhost_db.canal_notificacion", nullable: false),
-                    estado = table.Column<EstadoNotificacion>(type: "fiscalhost_db.estado_notificacion", nullable: false),
+                    canal = table.Column<int>(type: "integer", nullable: false),
+                    estado = table.Column<int>(type: "integer", nullable: false),
                     accion_sugerida = table.Column<string>(type: "jsonb", nullable: false),
                     fecha_programada = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     fecha_envio = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
@@ -824,6 +894,12 @@ namespace FiscalHost.Api.CR.Migrations
                 column: "usuario_id");
 
             migrationBuilder.CreateIndex(
+                name: "IX_auditoria_clasificacion_ingreso_clasificacion_ingreso_id",
+                schema: "fiscalhost_db",
+                table: "auditoria_clasificacion_ingreso",
+                column: "clasificacion_ingreso_id");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_auditoria_configuracion_ConfiguracionTributariaId",
                 schema: "fiscalhost_db",
                 table: "auditoria_configuracion",
@@ -855,9 +931,15 @@ namespace FiscalHost.Api.CR.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_ConfiguracionTributaria_ActividadEconomicaCodigo",
+                name: "IX_clasificacion_ingreso_anfitrion_id",
                 schema: "fiscalhost_db",
-                table: "ConfiguracionTributaria",
+                table: "clasificacion_ingreso",
+                column: "anfitrion_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_configuracion_tributaria_ActividadEconomicaCodigo",
+                schema: "fiscalhost_db",
+                table: "configuracion_tributaria",
                 column: "ActividadEconomicaCodigo");
 
             migrationBuilder.CreateIndex(
@@ -903,10 +985,10 @@ namespace FiscalHost.Api.CR.Migrations
                 column: "usuario_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_obligacion_tributaria_CalculoFiscalCalculoId",
+                name: "IX_obligacion_tributaria_calculo_id",
                 schema: "fiscalhost_db",
                 table: "obligacion_tributaria",
-                column: "CalculoFiscalCalculoId");
+                column: "calculo_id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_obligacion_tributaria_periodo_id",
@@ -937,6 +1019,12 @@ namespace FiscalHost.Api.CR.Migrations
                 name: "IX_propiedad_usuario_id",
                 schema: "fiscalhost_db",
                 table: "propiedad",
+                column: "usuario_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_reconstruccion_historica_usuario_id",
+                schema: "fiscalhost_db",
+                table: "reconstruccion_historica",
                 column: "usuario_id");
 
             migrationBuilder.CreateIndex(
@@ -988,15 +1076,19 @@ namespace FiscalHost.Api.CR.Migrations
                 schema: "fiscalhost_db");
 
             migrationBuilder.DropTable(
+                name: "audit_log",
+                schema: "fiscalhost_db");
+
+            migrationBuilder.DropTable(
+                name: "auditoria_clasificacion_ingreso",
+                schema: "fiscalhost_db");
+
+            migrationBuilder.DropTable(
                 name: "auditoria_configuracion",
                 schema: "fiscalhost_db");
 
             migrationBuilder.DropTable(
                 name: "auditoria_llave",
-                schema: "fiscalhost_db");
-
-            migrationBuilder.DropTable(
-                name: "auditoria_operacion",
                 schema: "fiscalhost_db");
 
             migrationBuilder.DropTable(
@@ -1020,6 +1112,10 @@ namespace FiscalHost.Api.CR.Migrations
                 schema: "fiscalhost_db");
 
             migrationBuilder.DropTable(
+                name: "reconstruccion_historica",
+                schema: "fiscalhost_db");
+
+            migrationBuilder.DropTable(
                 name: "reserva",
                 schema: "fiscalhost_db");
 
@@ -1036,7 +1132,11 @@ namespace FiscalHost.Api.CR.Migrations
                 schema: "fiscalhost_db");
 
             migrationBuilder.DropTable(
-                name: "ConfiguracionTributaria",
+                name: "clasificacion_ingreso",
+                schema: "fiscalhost_db");
+
+            migrationBuilder.DropTable(
+                name: "configuracion_tributaria",
                 schema: "fiscalhost_db");
 
             migrationBuilder.DropTable(
