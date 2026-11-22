@@ -14,6 +14,7 @@ public interface IAccesoContadorService
 {
     Task<(bool success, string? error, AccesoContadorResponse? data)> InvitarAsync(Guid anfitrionId, InvitarContadorRequest request);
     Task<(bool success, string? error)> RevocarAsync(Guid accesoId, Guid anfitrionId, RevocarAccesoContadorRequest request);
+    Task<(bool success, string? error)> EliminarAsync(Guid accesoId, Guid anfitrionId, string justificacion);
     Task<(bool autorizado, string mensaje)> ValidarPermisoAsync(Guid anfitrionId, string correoContador, string permiso);
     Task<List<AccesoContadorResponse>> GetByAnfitrionAsync(Guid anfitrionId);
     Task<int> ProcesarExpiracionesAsync();
@@ -134,6 +135,46 @@ public class AccesoContadorService(
         await notificaciones.NotificarAsync(
             anfitrionId.ToString(),
             $"Acceso revocado para el contador {acceso.CorreoContador}.");
+
+        return (true, null);
+    }
+
+    public async Task<(bool success, string? error)> EliminarAsync(
+        Guid accesoId,
+        Guid anfitrionId,
+        string justificacion)
+    {
+        if (string.IsNullOrWhiteSpace(justificacion))
+            return (false, "La justificación es obligatoria para eliminar el acceso.");
+
+        var acceso = await repository.GetByIdAsync(accesoId);
+        if (acceso is null || acceso.AnfitrionId != anfitrionId)
+            return (false, "No se encontró un acceso autorizado para eliminar.");
+
+        var anterior = new
+        {
+            acceso.Estado,
+            acceso.FechaRevocacion
+        };
+
+        // Eliminación lógica: marcar como REVOCADO en lugar de borrar físicamente
+        acceso.Estado = "REVOCADO";
+        acceso.FechaRevocacion = DateTimeOffset.UtcNow;
+
+        var anfitrion = await repository.GetUsuarioAsync(anfitrionId);
+        await repository.AddAuditoriaAsync(BuildAuditoria(
+            anfitrion,
+            OperacionAuditoria.DELETE,
+            "acceso_contador",
+            acceso.AccesoId,
+            anterior,
+            new { acceso.Estado, acceso.FechaRevocacion },
+            justificacion));
+        await repository.SaveChangesAsync();
+
+        await notificaciones.NotificarAsync(
+            anfitrionId.ToString(),
+            $"Acceso de contador eliminado: {acceso.CorreoContador}.");
 
         return (true, null);
     }
