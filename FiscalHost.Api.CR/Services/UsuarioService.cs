@@ -20,6 +20,7 @@ public interface IUsuarioService
 	Task<PreferenciasNotificacionDto?> ObtenerPreferenciasNotificacionAsync(Guid usuarioId);
 	Task<(bool success, string? error, PreferenciasNotificacionDto? data)> ActualizarPreferenciasNotificacionAsync(
 		Guid usuarioId, ActualizarPreferenciasNotificacionRequest request);
+	Task<(bool success, string? error, UsuarioDto? data)> ActualizarPerfilAsync(Guid usuarioId, ActualizarPerfilRequest request);
 }
 
 public class UsuarioService(IUsuarioRepository usuarioRepo) : IUsuarioService
@@ -149,5 +150,35 @@ public class UsuarioService(IUsuarioRepository usuarioRepo) : IUsuarioService
 		await usuarioRepo.SaveChangesAsync();
 
 		return (true, null, new PreferenciasNotificacionDto { CanalAlertas = prefs.CanalAlertas ?? CanalNotificacion.AMBOS });
+	}
+
+	public async Task<(bool success, string? error, UsuarioDto? data)> ActualizarPerfilAsync(Guid usuarioId, ActualizarPerfilRequest request)
+	{
+		var usuario = await usuarioRepo.GetByIdAsync(usuarioId);
+		if (usuario == null) return (false, "Usuario no encontrado.", null);
+
+		usuario.NombreCompleto = request.NombreCompleto;
+		usuario.RazonSocial = request.RazonSocial;
+		usuario.TipoIdentificacion = request.TipoIdentificacion;
+		usuario.NumeroIdentificacion = request.NumeroIdentificacion;
+
+		await usuarioRepo.UpdateAsync(usuario);
+		await usuarioRepo.SaveChangesAsync();
+
+		return (true, null, new UsuarioDto
+		{
+			UsuarioId = usuario.UsuarioId,
+			TipoIdentificacion = usuario.TipoIdentificacion,
+			NumeroIdentificacion = usuario.NumeroIdentificacion,
+			NombreCompleto = usuario.NombreCompleto,
+			RazonSocial = usuario.RazonSocial,
+			CorreoElectronico = usuario.CorreoElectronico,
+			Estado = usuario.Estado,
+			RolPrincipal = usuario.RolPrincipal,
+			EsUsuarioNuevo = usuario.EsUsuarioNuevo,
+			CorreoVerificado = usuario.CorreoVerificado,
+			FechaActivacion = usuario.FechaActivacion,
+			UltimoAcceso = usuario.UltimoAcceso
+		});
 	}
 }
