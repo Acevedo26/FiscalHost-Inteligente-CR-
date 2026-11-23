@@ -40,6 +40,7 @@ public class AccesoContadorRepository(AppDbContext db) : IAccesoContadorReposito
     public Task<List<AccesoContador>> GetByAnfitrionAsync(Guid anfitrionId) =>
         db.AccesosContadores
             .Where(a => a.AnfitrionId == anfitrionId)
+            .Include(a => a.Contador)
             .OrderByDescending(a => a.FechaInvitacion)
             .ToListAsync();
 
