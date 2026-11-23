@@ -6,6 +6,7 @@ public class AccesoContadorResponse
     public Guid AnfitrionId { get; set; }
     public Guid? ContadorId { get; set; }
     public string CorreoContador { get; set; } = string.Empty;
+    public string? NombreContador { get; set; }
     public string Estado { get; set; } = string.Empty;
     public DateTimeOffset FechaInvitacion { get; set; }
     public DateTimeOffset? FechaExpiracion { get; set; }
@@ -13,4 +14,5 @@ public class AccesoContadorResponse
     public bool PuedeVerIngresos { get; set; }
     public bool PuedeVerGastos { get; set; }
     public bool PuedeGenerarReportes { get; set; }
+    public string Permisos { get; set; } = string.Empty;
 }
