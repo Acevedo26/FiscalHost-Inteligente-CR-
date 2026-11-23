@@ -292,19 +292,26 @@ public class AccesoContadorService(
     private static AccesoContadorResponse MapToResponse(AccesoContador acceso)
     {
         var permisos = LeerPermisos(acceso.Permisos);
+        var permisosList = new List<string>();
+        if (permisos.PuedeVerIngresos) permisosList.Add("Ver Ingresos");
+        if (permisos.PuedeVerGastos) permisosList.Add("Ver Gastos");
+        if (permisos.PuedeGenerarReportes) permisosList.Add("Generar Reportes");
+
         return new AccesoContadorResponse
         {
             AccesoId = acceso.AccesoId,
             AnfitrionId = acceso.AnfitrionId,
             ContadorId = acceso.ContadorId,
             CorreoContador = acceso.CorreoContador,
+            NombreContador = acceso.Contador?.NombreCompleto,
             Estado = acceso.Estado,
             FechaInvitacion = acceso.FechaInvitacion,
             FechaExpiracion = acceso.FechaExpiracion,
             FechaRevocacion = acceso.FechaRevocacion,
             PuedeVerIngresos = permisos.PuedeVerIngresos,
             PuedeVerGastos = permisos.PuedeVerGastos,
-            PuedeGenerarReportes = permisos.PuedeGenerarReportes
+            PuedeGenerarReportes = permisos.PuedeGenerarReportes,
+            Permisos = string.Join(", ", permisosList)
         };
     }
 
