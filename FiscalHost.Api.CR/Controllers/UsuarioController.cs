@@ -30,6 +30,19 @@ public class UsuarioController(IUsuarioService service) : ControllerBase
 		return Ok(usuario);
 	}
 
+	[HttpPut("me/perfil")]
+	public async Task<IActionResult> ActualizarMiPerfil([FromBody] ActualizarPerfilRequest request)
+	{
+		var usuarioId = User.GetUsuarioId();
+		if (!ModelState.IsValid) return BadRequest(ModelState);
+
+		var (success, error, data) = await service.ActualizarPerfilAsync(usuarioId, request);
+
+		if (!success) return UnprocessableEntity(new { mensaje = error });
+
+		return Ok(data);
+	}
+
 	[HttpGet("{id:guid}")]
 	public async Task<IActionResult> GetById(Guid id)
 	{
