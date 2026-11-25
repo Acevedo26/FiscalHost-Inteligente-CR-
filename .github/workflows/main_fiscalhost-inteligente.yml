@@ -1,6 +1,3 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
 name: Build and deploy ASP.Net Core app to Azure Web App - FiscalHost-Inteligente
 
 on:
@@ -13,7 +10,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read #This is required for actions/checkout
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
@@ -23,30 +20,34 @@ jobs:
         with:
           dotnet-version: '10.x'
 
+      # 1. Compilar apuntando al proyecto correcto
       - name: Build with dotnet
-        run: dotnet build --configuration Release
+        run: dotnet build FiscalHost.Api.CR/FiscalHost.Api.CR.csproj --configuration Release
 
+      # 2. Publicar en una carpeta relativa a la raíz del repo
       - name: dotnet publish
-        run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
+        run: dotnet publish FiscalHost.Api.CR/FiscalHost.Api.CR.csproj -c Release -o ./myapp
 
+      # 3. Subir el artefacto desde la ruta relativa correcta
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: .net-app
-          path: ${{env.DOTNET_ROOT}}/myapp
+          path: ./myapp
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
     permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
+      id-token: write
+      contents: read
 
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: .net-app
+          path: ./myapp
       
       - name: Login to Azure
         uses: azure/login@v2
@@ -61,5 +62,4 @@ jobs:
         with:
           app-name: 'FiscalHost-Inteligente'
           slot-name: 'Production'
-          package: .
-          
+          package: ./myapp  # <-- Corregido: apunta a la carpeta del artefacto
