@@ -52,3 +52,7 @@ GEMINI.md
 
 # Local app settings with secrets
 appsettings.Development.json
+
+# Publish artifacts
+publish/
+publish-linux/
