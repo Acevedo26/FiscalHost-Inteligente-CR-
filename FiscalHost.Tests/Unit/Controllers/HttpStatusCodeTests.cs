@@ -509,7 +509,7 @@ public class HttpStatusCodeTests
         };
 
         serviceMock.ActualizarReservaAsync(Arg.Any<string>(), Arg.Any<UpdateReservaRequest>())
-            .Returns(Task.FromResult((false, "Reserva no encontrada.")));
+            .Returns(Task.FromResult<(bool success, string? error)>((false, "Reserva no encontrada.")));
 
         // Act
         var result = await controller.ActualizarReserva(Guid.NewGuid().ToString(), request);
@@ -659,7 +659,7 @@ public class HttpStatusCodeTests
         };
 
         serviceMock.EliminarReservaAsync(Arg.Any<string>(), Arg.Any<DeleteReservaRequest>())
-            .Returns(Task.FromResult((false, "Reserva no encontrada.")));
+            .Returns(Task.FromResult<(bool success, string? error)>((false, "Reserva no encontrada.")));
 
         // Act
         var result = await controller.EliminarReserva(Guid.NewGuid().ToString(), request);
@@ -696,7 +696,7 @@ public class HttpStatusCodeTests
     // Helper
     // ========================================================================
 
-    private static int GetStatusCode(IActionResult result)
+    private static int GetStatusCode(IActionResult? result)
     {
         return result switch
         {

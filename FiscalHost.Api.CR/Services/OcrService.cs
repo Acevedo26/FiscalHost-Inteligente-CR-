@@ -55,17 +55,25 @@ public class OcrService : IOcrService
             // 1. Validar el tipo de archivo y convertir PDF a Imagen si es necesario
             if (contentType.Contains("pdf", StringComparison.OrdinalIgnoreCase))
             {
-                var pages = Conversion.ToImages(fileStream).ToList();
-                var sb = new System.Text.StringBuilder();
-                foreach (var page in pages)
+                // PDFtoImage (pdfium) solo admite escritorios; CA1416 exige probar la plataforma en el punto de llamada.
+                if (OperatingSystem.IsWindows() || OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
                 {
-                    using var ms2 = new MemoryStream();
-                    using var data = page.Encode(SkiaSharp.SKEncodedImageFormat.Png, 100);
-                    data.SaveTo(ms2);
-                    ms2.Position = 0;
-                    sb.AppendLine(PerformOcrOnImageStream(ms2));
+                    var pages = Conversion.ToImages(fileStream).ToList();
+                    var sb = new System.Text.StringBuilder();
+                    foreach (var page in pages)
+                    {
+                        using var ms2 = new MemoryStream();
+                        using var data = page.Encode(SkiaSharp.SKEncodedImageFormat.Png, 100);
+                        data.SaveTo(ms2);
+                        ms2.Position = 0;
+                        sb.AppendLine(PerformOcrOnImageStream(ms2));
+                    }
+                    extractedText = sb.ToString();
                 }
-                extractedText = sb.ToString();
+                else
+                {
+                    throw new PlatformNotSupportedException("La extracción de texto desde PDF solo está soportada en Windows, Linux y macOS.");
+                }
             }
             else if (contentType.Contains("image", StringComparison.OrdinalIgnoreCase))
             {

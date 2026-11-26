@@ -77,6 +77,7 @@ public class EnumSerializationTests
     {
         var json = """{"clasificacionFiscal": "GRAVADO"}""";
         var dto = JsonSerializer.Deserialize<EnumContainer>(json, _options);
+        Assert.NotNull(dto);
         Assert.Equal(ClasificacionFiscal.GRAVADO, dto.ClasificacionFiscal);
     }
 
@@ -87,6 +88,7 @@ public class EnumSerializationTests
         // Este test verifica que la deserialización funciona con nombres C#
         var json = """{"plataformaOrigen": "BOOKING"}""";
         var dto = JsonSerializer.Deserialize<EnumContainer>(json, _options);
+        Assert.NotNull(dto);
         Assert.Equal(PlataformaOrigen.BOOKING, dto.PlataformaOrigen);
     }
 
