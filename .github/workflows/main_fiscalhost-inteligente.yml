@@ -20,15 +20,24 @@ jobs:
         with:
           dotnet-version: '10.x'
 
-      # 1. Compilar apuntando al proyecto correcto
-      - name: Build with dotnet
-        run: dotnet build FiscalHost.Api.CR/FiscalHost.Api.CR.csproj --configuration Release
+      # 1. Restaurar dependencias NuGet (solo la primera vez que cambian)
+      - name: Restore
+        run: dotnet restore FiscalHost.sln
 
-      # 2. Publicar en una carpeta relativa a la raíz del repo
-      - name: dotnet publish
-        run: dotnet publish FiscalHost.Api.CR/FiscalHost.Api.CR.csproj -c Release -o ./myapp
+      # 2. Compilar TODO (API + tests) para verificar que el código completo compila.
+      #    Compilar no empaca: nada de esto entra en el artefacto.
+      - name: Build solution (verification only, nothing shipped)
+        run: dotnet build FiscalHost.sln --no-restore --configuration Release
 
-      # 3. Subir el artefacto desde la ruta relativa correcta
+      # 3. Quality gate: correr los tests. Si fallan, el job falla y el deploy NUNCA se ejecuta.
+      - name: Run tests (deploy gate)
+        run: dotnet test FiscalHost.Tests/FiscalHost.Tests.csproj --no-build --configuration Release
+
+      # 4. Empacar SOLO el proyecto de la API. --no-build reutiliza la salida Release
+      #    del paso 2: se compila una vez, se publica una vez, los tests no entran jamás.
+      - name: Publish API project only
+        run: dotnet publish FiscalHost.Api.CR/FiscalHost.Api.CR.csproj --no-build --configuration Release -o ./myapp
+
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
@@ -38,17 +47,21 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: build
+    # Puerta de aprobación: el job queda en "Waiting" hasta que un revisor
+    # apruebe en GitHub → Settings → Environments → production → Required reviewers.
+    # Además, el subject OIDC pasa a ser environment:production (ver README/ops).
+    environment: production
     permissions:
       id-token: write
       contents: read
 
     steps:
-      - name: Download artifact from build job
+      - name: Download artifact for deployment job
         uses: actions/download-artifact@v4
         with:
           name: .net-app
           path: ./myapp
-      
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -62,4 +75,4 @@ jobs:
         with:
           app-name: 'FiscalHost-Inteligente'
           slot-name: 'Production'
-          package: ./myapp  # <-- Corregido: apunta a la carpeta del artefacto
+          package: ./myapp
