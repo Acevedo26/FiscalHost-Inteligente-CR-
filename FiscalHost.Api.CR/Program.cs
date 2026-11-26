@@ -12,12 +12,6 @@ using Microsoft.OpenApi.Models;
 using System.Text.Json.Serialization;
 using FiscalHost.Api.CR.Models.Enums.Identity;
 
-// Registrar explícitamente los enums de PostgreSQL en el type mapper global de Npgsql.
-// Esto permite leer campos como fiscalhost_db.estado_usuario sin que EF Core intente
-// leerlos como System.Int32.
-NpgsqlConnection.GlobalTypeMapper.EnableUnmappedTypes();
-NpgsqlConnection.GlobalTypeMapper.MapEnum<EstadoUsuario>("fiscalhost_db.estado_usuario");
-
 var builder = WebApplication.CreateBuilder(args);
 
 var dataSource = new NpgsqlDataSourceBuilder(

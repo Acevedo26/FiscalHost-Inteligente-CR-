@@ -15,7 +15,6 @@ namespace FiscalHost.Api.CR.Services;
 public class ReconstruccionHistoricaService(
     IReconstruccionHistoricaRepository reconstruccionRepo,
     IPeriodoFiscalRepository periodoRepo,
-    IObligacionTributariaRepository obligacionRepo,
     AppDbContext dbContext) : IReconstruccionHistoricaService
 {
     private static readonly string[] ColumnasRequeridas =

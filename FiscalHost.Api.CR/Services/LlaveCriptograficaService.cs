@@ -93,7 +93,7 @@ public class LlaveCriptograficaService(
     {
         try
         {
-            using var cert = new X509Certificate2(bytes, contrasena);
+            using var cert = X509CertificateLoader.LoadPkcs12(bytes, contrasena);
             error = null;
             return true;
         }
