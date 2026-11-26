@@ -179,14 +179,15 @@ public class ExportacionHaciendaService(
     private static byte[] Proteger(byte[] bytes, string contrasena)
     {
         var salt = RandomNumberGenerator.GetBytes(16);
-        using var deriveBytes = new Rfc2898DeriveBytes(
+        var claveAes = Rfc2898DeriveBytes.Pbkdf2(
             contrasena,
             salt,
             100_000,
-            HashAlgorithmName.SHA256);
+            HashAlgorithmName.SHA256,
+            32);
 
         using var aes = Aes.Create();
-        aes.Key = deriveBytes.GetBytes(32);
+        aes.Key = claveAes;
         aes.GenerateIV();
 
         using var encryptor = aes.CreateEncryptor();

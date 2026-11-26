@@ -25,9 +25,9 @@ public class ConfiguracionTributariaRepository(AppDbContext db) : IConfiguracion
         {
             AnfitrionId = anfitrionId,
             CodigoActividad = perfil.CodigoActividadEconomica,
-            DireccionFiscal = perfil.DireccionFiscal,
-            Nise = perfil.Nise,
-            TribuCr = perfil.TribuCr,
+            DireccionFiscal = perfil.DireccionFiscal ?? string.Empty,
+            Nise = perfil.Nise ?? string.Empty,
+            TribuCr = perfil.TribuCr ?? string.Empty,
             ActividadEconomica = perfil.ActividadEconomica
         };
     }

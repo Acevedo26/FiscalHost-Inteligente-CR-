@@ -117,7 +117,9 @@ public class ChallengerAuditAndEndpointsStressTests
         Assert.Equal("reserva", capturedAudit.TablaAfectada);
         Assert.Equal(reservaId, capturedAudit.RegistroId);
         Assert.Equal("Corrección de tarifa acordada por correo bajo Ley 8968", capturedAudit.Justificacion);
+        Assert.NotNull(capturedAudit.OldValues);
         Assert.True(capturedAudit.OldValues.Contains("Huésped Original") || capturedAudit.OldValues.Contains(@"Hu\u00E9sped Original"));
+        Assert.NotNull(capturedAudit.NewValues);
         Assert.True(capturedAudit.NewValues.Contains("Huésped Actualizado") || capturedAudit.NewValues.Contains(@"Hu\u00E9sped Actualizado"));
 
         await repository.Received(1).SaveChangesAsync();
